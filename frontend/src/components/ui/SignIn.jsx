@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import DropDown from './DropDown';
 import { loginWithEmailPassword } from '../../auth/firebaseService';
 
-export default function SignIn() {
+export default function SignIn({ setMethod }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -92,6 +92,17 @@ export default function SignIn() {
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
           )}
+        </div>
+
+        {/* Forgot Password Link */}
+        <div className="text-right">
+          <button
+            type="button"
+            className="text-sm text-blue-400 hover:underline"
+            onClick={() => setMethod('ForgotPassword')}
+          >
+            Forgot Password?
+          </button>
         </div>
 
         {/* Submit Button */}

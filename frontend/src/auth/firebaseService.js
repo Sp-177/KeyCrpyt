@@ -6,6 +6,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
+
 } from 'firebase/auth';
 
 
@@ -47,10 +49,19 @@ const signInWithGoogle = async () => {
   return await signInWithPopup(auth, provider);
 };
 
+/** * Send password reset email
+ * @param {string} email
+ * @returns {Promise<void>}
+  */
+const sendResetEmail = async (email) => {
+  return await sendPasswordResetEmail(auth, email);
+}
+
 // ✅ Export all functions
 export {
   registerWithEmailPassword,
   loginWithEmailPassword,
   signInWithGoogle,
+  sendResetEmail,
   logout,
 };
