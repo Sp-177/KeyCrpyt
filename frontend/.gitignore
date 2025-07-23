@@ -1,0 +1,66 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+.temp/
+.out/
+
+# Vite cache
+.vite/
+
+# Local environment files
+.env
+.env.*.local
+*.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-specific
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Firebase
+.firebase/
+.firebaserc
+
+# JetBrains IDEs
+*.iml
+*.ipr
+*.iws
+out/
+
+# Coverage reports
+coverage/
+
+# Optional frameworks (future-proofing)
+.expo/
+.next/
+
+# Optional lock files (if unused)
+# yarn.lock
+# pnpm-lock.yaml
