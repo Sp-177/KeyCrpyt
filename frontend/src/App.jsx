@@ -1,7 +1,27 @@
-export default function App() {
+// src/App.jsx
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Loading from './components/ui/Loading';
+
+// Lazy-loaded pages
+const AboutUS = lazy(() => import('./pages/AboutUS'));
+const Landing = lazy(() => import('./pages/Landing'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+
+function App() {
   return (
-    <div className="h-screen bg-gradient-to-r from-cyan-200 to-blue-300 flex items-center justify-center">
-      <h1 className="text-5xl font-extrabold text-blue-800">Tailwind is Working 🎉</h1>
-    </div>
+    <Router>
+      <Suspense fallback={<Loading />}>
+        <Toaster position="top-right" reverseOrder={false} />
+        <Routes>
+          <Route path="/" element={<AboutUS />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </Suspense>
+    </Router>
   );
 }
+
+export default App;

@@ -1,0 +1,56 @@
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Outer Shield: Top edges extended -->
+  <path
+    d="M80 10
+       L125 26
+       L134 65
+       C134 105, 100 132, 80 142
+       C60 132, 26 105, 26 65
+       L35 26
+       L80 10 Z"
+    stroke="white"
+    stroke-width="4"
+    fill="none"
+  />
+
+  <!-- Inner Shield: Extended similarly -->
+  <path
+    d="M80 20
+       L114 35
+       L122 68
+       C122 100, 95 122, 80 130
+       C65 122, 38 100, 38 68
+       L46 35
+       L80 20 Z"
+    stroke="white"
+    stroke-width="2"
+    opacity="0.4"
+    fill="none"
+  />
+
+  <!-- Key Head (Pentagon) -->
+  <path
+    d="M80 50 
+       L86 58 
+       L83 66 
+       L77 66 
+       L74 58 
+       Z"
+    stroke="white"
+    stroke-width="2"
+    fill="none"
+  />
+
+  <!-- Key Shaft -->
+  <line x1="80" y1="66" x2="80" y2="108" stroke="white" stroke-width="3" />
+
+  <!-- First Full Tooth -->
+  <path d="M74 90 h12 v5 h-12 Z" fill="white" />
+
+  <!-- Second Split Tooth -->
+  <path d="M76 98 h3 v4 h-3 Z" fill="white" />
+  <path d="M81 98 h3 v4 h-3 Z" fill="white" />
+
+  <!-- Third Tooth: Extended on right -->
+  <path d="M80 104 h6 v4 h-6 Z" fill="white" />
+</svg>
