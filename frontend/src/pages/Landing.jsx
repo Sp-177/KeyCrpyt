@@ -1,5 +1,7 @@
-// Landing.jsx
-import React, { lazy, Suspense, useState } from 'react';
+// Fixed Landing.jsx - Only fixing authentication check logic
+import React, { lazy, Suspense, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Loading from '../components/ui/Loading';
 
 const TypingHero = lazy(() => import('../components/ui/TypingHero'));
@@ -10,7 +12,16 @@ const ForgetPassword = lazy(() => import('../components/ui/ForgetPassword'));
 const VideoBackground = lazy(() => import('../components/ui/VideoBackground'));
 
 export default function Landing() {
-  const [method, setMethod] = useState('SignIn');
+  const [method, setMethod] = React.useState('SignIn');
+  const navigate = useNavigate();
+  const { email, isAuthenticated } = useSelector((state) => state.auth); // Added isAuthenticated
+
+  useEffect(() => {
+    // Fixed authentication check to use both email and isAuthenticated
+    if (email && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [email, isAuthenticated, navigate]);
 
   return (
     <Suspense fallback={<Loading />}>
@@ -22,7 +33,6 @@ export default function Landing() {
 
         {/* Right – Auth Area */}
         <div className="w-1/2 h-full flex flex-col justify-center items-center px-8 relative">
-
           {/* ✅ Logo at center top – hover effect contained */}
           <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
             <Logo />
@@ -49,7 +59,7 @@ export default function Landing() {
             {method !== 'ForgotPassword' && (
               <div className="text-sm text-center text-gray-400 transition-opacity duration-300">
                 {method === 'SignIn'
-                  ? 'Don’t have an account?'
+                  ? 'Dont have an account?'
                   : 'Already a user?'}
                 <button
                   onClick={() =>

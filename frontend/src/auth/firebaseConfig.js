@@ -1,7 +1,9 @@
 // src/auth/firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+import { getAuth,setPersistence,browserLocalPersistence } from "firebase/auth";
+
+import { getAnalytics } from "firebase/analytics";  
+import {getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,3 +19,6 @@ const app = initializeApp(firebaseConfig);
 
 
 export const auth= getAuth(app);
+export const storage= getStorage(app);
+
+
