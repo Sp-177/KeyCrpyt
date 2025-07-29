@@ -1,11 +1,14 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../auth/firebaseConfig";  // <-- Make sure you import auth
+import { auth } from "../auth/firebaseConfig";
 import TopBar from "../components/ui/TopBar";
+import { useSelector } from "react-redux";
 
 const Dashboard = () => {
   const [user, loading, error] = useAuthState(auth);
+  const theme = useSelector((state) => state.theme.theme);
+  const isDark = theme === "dark";
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,46 +17,162 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
-  if (loading) return <div className="text-center mt-20 text-gray-600">Loading...</div>;
-  if (error) return <div className="text-center mt-20 text-red-600">Error: {error.message}</div>;
+  if (loading)
+    return <div className="text-center mt-20 text-teal-600">Loading...</div>;
+  if (error)
+    return <div className="text-center mt-20 text-rose-500">Error: {error.message}</div>;
   if (!user) return null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden pt-24 bg-gradient-to-br from-teal-100 via-cyan-100 to-emerald-100">
+    <div
+      className={`relative min-h-screen pt-24 overflow-hidden ${
+        isDark
+          ? "bg-gradient-to-br from-gray-950 via-slate-900 to-black text-white"
+          : "bg-gradient-to-br from-emerald-50 via-teal-50/80 to-cyan-50 text-gray-800"
+      }`}
+    >
       <TopBar />
 
-      {/* Ocean Wave Animation */}
-      <div className="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
-        <svg className="w-full h-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
-          <path
-            fill="#a7f3d0"
-            fillOpacity="0.5"
-            d="M0,128L40,122.7C80,117,160,107,240,101.3C320,96,400,96,480,117.3C560,139,640,181,720,202.7C800,224,880,224,960,202.7C1040,181,1120,139,1200,117.3C1280,96,1360,96,1400,96L1440,96L1440,320L0,320Z"
-          >
-            <animate
-              attributeName="d"
-              dur="10s"
-              repeatCount="indefinite"
-              values="
-                M0,128L40,122.7C80,117,160,107,240,101.3C320,96,400,96,480,117.3C560,139,640,181,720,202.7C800,224,880,224,960,202.7C1040,181,1120,139,1200,117.3C1280,96,1360,96,1400,96L1440,96L1440,320L0,320Z;
-                M0,96L60,90.7C120,85,240,75,360,90.7C480,107,600,149,720,165.3C840,181,960,171,1080,160C1200,149,1320,139,1380,133.3L1440,128L1440,320L0,320Z;
-                M0,128L40,122.7C80,117,160,107,240,101.3C320,96,400,96,480,117.3C560,139,640,181,720,202.7C800,224,880,224,960,202.7C1040,181,1120,139,1200,117.3C1280,96,1360,96,1400,96L1440,96L1440,320L0,320Z"
-            />
-          </path>
-        </svg>
+      {/* Background Waves & Orbs */}
+      <div className="absolute inset-0 -z-10">
+        {/* Waves */}
+        {[1, 2, 3].map((layer, i) => {
+          const colors = isDark
+            ? [
+                ["#334155", "#0f172a", "#1e293b"],
+                ["#1e3a8a", "#0e7490", "#164e63"],
+                ["#0369a1", "#0891b2", "#0f766e"],
+              ]
+            : [
+                ["#a7f3d0", "#67e8f9", "#a5f3fc"],
+                ["#6ee7b7", "#7dd3fc", "#bae6fd"],
+                ["#5eead4", "#22d3ee", "#67e8f9"],
+              ];
+
+          return (
+            <div key={layer} className={`absolute inset-0 opacity-${40 - i * 10}`}>
+              <svg className="w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id={`wave${layer}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={colors[layer - 1][0]} stopOpacity="0.5" />
+                    <stop offset="50%" stopColor={colors[layer - 1][1]} stopOpacity="0.3" />
+                    <stop offset="100%" stopColor={colors[layer - 1][2]} stopOpacity="0.4" />
+                  </linearGradient>
+                </defs>
+                <path
+                  fill={`url(#wave${layer})`}
+                  d={`M0,${400 + 100 * (layer - 1)}L48,${380 + 100 * (layer - 1)}C96,${360 + 100 * (layer - 1)},192,${320 + 100 * (layer - 1)},288,${300 + 100 * (layer - 1)}C384,${280 + 100 * (layer - 1)},480,${280 + 100 * (layer - 1)},576,${300 + 100 * (layer - 1)}C672,${320 + 100 * (layer - 1)},768,${360 + 100 * (layer - 1)},864,${380 + 100 * (layer - 1)}C960,${400 + 100 * (layer - 1)},1056,${400 + 100 * (layer - 1)},1152,${380 + 100 * (layer - 1)}C1248,${360 + 100 * (layer - 1)},1344,${320 + 100 * (layer - 1)},1392,${300 + 100 * (layer - 1)}L1440,${280 + 100 * (layer - 1)}L1440,800L0,800Z`}
+                >
+                  <animateTransform
+                    attributeName="transform"
+                    attributeType="XML"
+                    type="translate"
+                    values={`0,0;${10 * layer},${5 * layer};0,0`}
+                    dur={`${20 + 5 * layer}s`}
+                    repeatCount="indefinite"
+                  />
+                </path>
+              </svg>
+            </div>
+          );
+        })}
+
+        {/* Floating Orbs */}
+        <div
+          className={`absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-3xl ${
+            isDark
+              ? "bg-gradient-radial from-indigo-800/30 via-slate-800/20 to-transparent"
+              : "bg-gradient-radial from-emerald-200/30 via-teal-200/20 to-transparent"
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 right-1/4 w-48 h-48 rounded-full blur-2xl ${
+            isDark
+              ? "bg-gradient-radial from-purple-700/25 via-gray-700/15 to-transparent"
+              : "bg-gradient-radial from-cyan-200/25 via-teal-200/15 to-transparent"
+          }`}
+        />
+        <div
+          className={`absolute bottom-1/3 left-1/3 w-32 h-32 rounded-full blur-xl ${
+            isDark
+              ? "bg-gradient-radial from-cyan-800/20 via-indigo-900/10 to-transparent"
+              : "bg-gradient-radial from-teal-300/20 via-emerald-200/10 to-transparent"
+          }`}
+        />
+
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, ${
+                isDark ? "rgba(255,255,255,0.1)" : "rgba(20,184,166,0.3)"
+              } 1px, transparent 0)`,
+              backgroundSize: "50px 50px",
+            }}
+          />
+        </div>
       </div>
 
       {/* Welcome Card */}
-      <div className="flex justify-center items-center h-[calc(100vh-6rem)] px-4">
-        <div className="max-w-xl w-full bg-white/25 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl p-12 text-center relative overflow-hidden group hover:scale-[1.01] transition-transform duration-500">
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-white/25 via-white/10 to-transparent pointer-events-none" />
-          <h1 className="text-4xl font-bold text-gray-800 mb-4 tracking-wide drop-shadow-md">
-            Welcome to <span className="text-teal-700">KeyCrypt</span>
-          </h1>
-          <p className="text-gray-700 text-lg drop-shadow-sm">
-            You're logged in as <span className="font-semibold text-gray-900">{user.email}</span>
-          </p>
-          <div className="absolute -inset-0.5 bg-gradient-to-br from-teal-200 via-cyan-200 to-green-200 opacity-0 group-hover:opacity-50 transition-opacity blur-md rounded-3xl z-[-1]" />
+      <div className="flex justify-center items-center h-[calc(100vh-6rem)] px-4 relative z-10">
+        <div
+          className={`max-w-2xl w-full ${
+            isDark
+              ? "bg-gradient-to-br from-slate-900/90 via-slate-800/70 to-gray-900/90 text-white"
+              : "bg-gradient-to-br from-white/70 via-emerald-50/60 to-teal-50/70 text-gray-800"
+          } backdrop-blur-2xl border border-white/20 rounded-[2.5rem] shadow-2xl p-12 text-center relative group hover:scale-[1.02] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]`}
+        >
+          <div className="relative z-10">
+            <h1
+              className={`text-5xl font-light ${
+                isDark
+                  ? "bg-gradient-to-r from-teal-300 via-cyan-300 to-emerald-300"
+                  : "bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-600"
+              } bg-clip-text text-transparent mb-8 tracking-wide leading-tight`}
+            >
+              Welcome to <span className="font-semibold">KeyCrypt</span>
+            </h1>
+            <p
+              className={`${
+                isDark ? "text-slate-300" : "text-slate-600"
+              } text-xl font-light leading-relaxed mb-6`}
+            >
+              Your secure digital vault awaits
+            </p>
+            <div
+              className={`inline-flex items-center gap-3 ${
+                isDark
+                  ? "bg-white/5 border border-white/10 text-white"
+                  : "bg-gradient-to-r from-teal-100/80 to-cyan-100/70 border border-teal-200/50 text-slate-700"
+              } backdrop-blur-sm px-6 py-3 rounded-2xl shadow-sm`}
+            >
+              <div
+                className={`w-2 h-2 ${
+                  isDark
+                    ? "bg-gradient-to-r from-cyan-400 to-teal-400"
+                    : "bg-gradient-to-r from-emerald-400 to-teal-400"
+                } rounded-full animate-pulse`}
+              />
+              <span className="font-medium">{user.email}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Action Hint */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+        <div
+          className={`inline-flex items-center gap-2 ${
+            isDark ? "text-teal-300/60" : "text-teal-600/60"
+          } text-sm font-light`}
+        >
+          <div className="w-1 h-1 bg-teal-400 rounded-full animate-bounce"></div>
+          <span>Click your avatar to access settings</span>
+          <div
+            className="w-1 h-1 bg-teal-400 rounded-full animate-bounce"
+            style={{ animationDelay: "0.5s" }}
+          ></div>
         </div>
       </div>
     </div>
