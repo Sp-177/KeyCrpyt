@@ -22,6 +22,7 @@ const ProfileSidebar = ({ isOpen, onClose }) => {
 
   const handleChangePassword = async () => {
     try {
+      // console.log(email)
       await sendResetEmail(email);
       toast.success('📧 Password reset email sent!');
     } catch (error) {

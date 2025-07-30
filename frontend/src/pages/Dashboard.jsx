@@ -6,7 +6,7 @@ import TopBar from "../components/ui/TopBar";
 import { useSelector } from "react-redux";
 import WelcomeCard from "../components/ui/WelcomeCard";
 import FloatingHint from "../components/ui/FloatingHints";
-// import PasswordVault from "../components/ui/PasswordVault";
+import PasswordVault from "../components/ui/PasswordVault";
 // import Notifications from "../components/ui/Notifications";
 
 const Dashboard = () => {

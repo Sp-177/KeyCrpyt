@@ -54,8 +54,7 @@ const signInWithGoogle = async () => {
  * @returns {Promise<void>}
   */
 const sendResetEmail = async (email) => {
-  return await sendPasswordResetEmail(email);
-    
+  return await sendPasswordResetEmail(auth,email);
 }
 
 // ✅ Export all functions
