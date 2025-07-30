@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Loading from './components/ui/Loading';
+
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './auth/firebaseConfig';
 import { useDispatch } from 'react-redux';
@@ -13,6 +14,7 @@ import { setUser,clearUser } from './store/authSlice';
 const AboutUS = lazy(() => import('./pages/AboutUS'));
 const Landing = lazy(() => import('./pages/Landing'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ErrorPage = lazy(() => import('./pages/ErrorPage')); 
 
 function App() {
   
@@ -24,6 +26,7 @@ function App() {
           <Route path="/" element={<AboutUS />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path='*' element={<ErrorPage/>}/>
         </Routes>
       </Suspense>
     </Router>
