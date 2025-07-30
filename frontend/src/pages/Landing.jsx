@@ -1,5 +1,4 @@
-// Fixed Landing.jsx - Only fixing authentication check logic
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Loading from '../components/ui/Loading';
@@ -12,62 +11,66 @@ const ForgetPassword = lazy(() => import('../components/ui/ForgetPassword'));
 const VideoBackground = lazy(() => import('../components/ui/VideoBackground'));
 
 export default function Landing() {
-  const [method, setMethod] = React.useState('SignIn');
+  const [authScreen, setAuthScreen] = useState('signin'); // values: signin, signup, forgotpassword
   const navigate = useNavigate();
-  const { email, isAuthenticated } = useSelector((state) => state.auth); // Added isAuthenticated
+  const { email, isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    // Fixed authentication check to use both email and isAuthenticated
     if (email && isAuthenticated) {
       navigate('/dashboard');
     }
   }, [email, isAuthenticated, navigate]);
 
+  const onNavigate = (target) => {
+    setAuthScreen(target.toLowerCase());
+  };
+
+  const title =
+    authScreen === 'signin'
+      ? 'Welcome Back!'
+      : authScreen === 'signup'
+      ? 'Join Us!'
+      : 'Reset Password';
+
   return (
     <Suspense fallback={<Loading />}>
-      <div className="w-full h-screen flex bg-black text-white font-sans overflow-hidden">
-        {/* Left – Background Video & Hero */}
+      <div className="w-full h-screen flex bg-gradient-to-br from-[#0d0d0d] via-slate-900 to-black text-white font-sans overflow-hidden">
+        {/* Left: Video Hero */}
         <VideoBackground>
           <TypingHero />
         </VideoBackground>
 
-        {/* Right – Auth Area */}
-        <div className="w-1/2 h-full flex flex-col justify-center items-center px-8 relative">
-          {/* ✅ Logo at center top – hover effect contained */}
+        {/* Right: Auth Card */}
+        <div className="w-1/2 h-full flex flex-col justify-center items-center px-8 relative bg-black/50 backdrop-blur-sm shadow-inner">
+          {/* Logo */}
           <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
             <Logo />
           </div>
 
-          {/* Auth Form Area */}
+          {/* Form Section */}
           <div className="w-full max-w-sm space-y-6 mt-40">
-            <h3 className="text-3xl font-semibold text-center text-gray-200 transition-all duration-300">
-              {method === 'SignIn'
-                ? 'Welcome Back!'
-                : method === 'SignUp'
-                ? 'Join Us!'
-                : 'Reset Password'}
+            <h3 className="text-3xl font-bold text-center bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent tracking-wide drop-shadow-sm">
+              {title}
             </h3>
 
-            {method === 'SignIn' ? (
-              <SignIn setMethod={setMethod} />
-            ) : method === 'SignUp' ? (
-              <SignUp setMethod={setMethod} />
-            ) : (
-              <ForgetPassword setMethod={setMethod} />
-            )}
+            {authScreen === 'signin' && <SignIn onNavigate={onNavigate} />}
+            {authScreen === 'signup' && <SignUp onNavigate={onNavigate} />}
+            {authScreen === 'forgotpassword' && <ForgetPassword onNavigate={onNavigate} />}
 
-            {method !== 'ForgotPassword' && (
+            {/* Switch Button (SignIn/SignUp only) */}
+            {authScreen !== 'forgotpassword' && (
               <div className="text-sm text-center text-gray-400 transition-opacity duration-300">
-                {method === 'SignIn'
-                  ? 'Dont have an account?'
+                {authScreen === 'signin'
+                  ? "Don't have an account?"
                   : 'Already a user?'}
                 <button
+                  type="button"
                   onClick={() =>
-                    setMethod(method === 'SignIn' ? 'SignUp' : 'SignIn')
+                    onNavigate(authScreen === 'signin' ? 'signup' : 'signin')
                   }
-                  className="ml-2 underline text-white hover:text-gray-300 transition duration-300 cursor-pointer"
+                  className="ml-2 underline bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent hover:opacity-80 transition duration-300 cursor-pointer"
                 >
-                  {method === 'SignIn' ? 'Sign Up' : 'Sign In'}
+                  {authScreen === 'signin' ? 'Sign Up' : 'Sign In'}
                 </button>
               </div>
             )}

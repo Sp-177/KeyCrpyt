@@ -1,18 +1,16 @@
-// Fixed SignIn.jsx - Only fixing dispatch and error handling
+// Fixed SignIn.jsx - Removed setMethod prop, using onNavigate only and matched theme colors
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import DropDown from './DropDown';
 import { loginWithEmailPassword } from '../../auth/firebaseService';
 import { useDispatch } from 'react-redux';
-import { setEmail } from '../../store/authSlice'; // Fixed import path
+import { setEmail } from '../../store/authSlice';
 
-export default function SignIn({ setMethod }) {
+export default function SignIn({ onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const {
@@ -27,11 +25,10 @@ export default function SignIn({ setMethod }) {
 
     try {
       const userCred = await loginWithEmailPassword(data.email, data.password);
-      dispatch(setEmail(userCred.user.email)); // Fixed to dispatch user email from userCred
+      dispatch(setEmail(userCred.user.email));
       toast.success('🎉 Login successful!', { id: toastId });
-      navigate('/dashboard');
+      if (onNavigate) onNavigate('dashboard');
     } catch (err) {
-      // Added more specific error handling for newer Firebase auth errors
       const message =
         err?.code === 'auth/user-not-found'
           ? '🚫 No account found for this email'
@@ -50,7 +47,7 @@ export default function SignIn({ setMethod }) {
   };
 
   return (
-    <div className="w-full max-w-sm p-6 space-y-6 bg-black bg-opacity-60 border border-white/10 rounded-xl shadow-lg backdrop-blur-sm">
+    <div className="w-full max-w-sm p-6 space-y-6 bg-gradient-to-br from-gray-900/80 to-gray-800/70 border border-white/10 rounded-2xl shadow-xl backdrop-blur-md">
       <DropDown />
       <div className="flex items-center justify-center text-sm text-gray-400">or</div>
 
@@ -67,7 +64,7 @@ export default function SignIn({ setMethod }) {
               },
             })}
             placeholder="you@example.com"
-            className="w-full p-2 rounded border border-white bg-black text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition"
+            className="w-full p-2 rounded border border-white/10 bg-black/60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
             disabled={loading}
           />
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
@@ -83,13 +80,13 @@ export default function SignIn({ setMethod }) {
                 minLength: { value: 6, message: '⚠️ Minimum 6 characters' },
               })}
               placeholder="••••••••"
-              className="w-full p-2 pr-10 rounded border border-white bg-black text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 transition"
+              className="w-full p-2 pr-10 rounded border border-white/10 bg-black/60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
               disabled={loading}
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-2 text-white hover:text-blue-400 text-lg flex items-center" // Added flex items-center
+              className="absolute inset-y-0 right-2 text-white hover:text-teal-400 text-lg flex items-center"
               tabIndex={-1}
             >
               <i className={`fi ${showPassword ? 'fi-rr-eye' : 'fi-rr-eye-crossed'}`}></i>
@@ -101,10 +98,10 @@ export default function SignIn({ setMethod }) {
         <div className="text-right">
           <button
             type="button"
-            className="text-sm text-blue-400 hover:underline"
+            className="text-sm text-teal-400 hover:underline hover:text-white"
             onClick={() => {
               toast('🔁 Switching to password recovery', { icon: '📧' });
-              setMethod('ForgotPassword');
+              if (onNavigate) onNavigate('forgotpassword');
             }}
           >
             Forgot Password?
@@ -116,7 +113,7 @@ export default function SignIn({ setMethod }) {
           whileTap={{ scale: loading ? 1 : 0.97 }}
           type="submit"
           disabled={loading}
-          className="w-full bg-white text-black py-2 rounded font-semibold hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-teal-400 text-black py-2 rounded-xl font-semibold hover:bg-teal-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Signing in...' : 'Continue'}
         </motion.button>
