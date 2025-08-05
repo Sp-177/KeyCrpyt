@@ -12,22 +12,23 @@ const TopBar = ({ onNavigate }) => {
   const [firebaseUser] = useAuthState(auth);
   const dispatch = useDispatch();
   const [showSidebar, setShowSidebar] = useState(false);
+  const alertCount = useSelector((state) => state.alert.alertCount); // correctly select from alert slice
 
-  useEffect(() => {
-    if (firebaseUser) {
-      dispatch(
-        setUser({
-          email: firebaseUser.email,
-          photoURL: firebaseUser.photoURL || defaultPic,
-        })
-      );
-    } else {
-      dispatch(clearUser());
-    }
-  }, [firebaseUser, dispatch]);
+useEffect(() => {
+  if (firebaseUser) {
+    dispatch(
+      setUser({
+        email: firebaseUser.email,
+        photoURL: firebaseUser.photoURL || defaultPic,
+      })
+    );
+  } else {
+    dispatch(clearUser());
+  }
+}, [firebaseUser, dispatch]);
 
   const user = useSelector((state) => state.auth);
-  const alertCount =1;
+  
 
   const toggleSidebar = () => setShowSidebar((prev) => !prev);
 

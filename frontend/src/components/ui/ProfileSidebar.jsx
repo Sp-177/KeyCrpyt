@@ -24,7 +24,7 @@ const ProfileSidebar = ({ isOpen, onClose }) => {
     try {
       // console.log(email)
       await sendResetEmail(email);
-      toast.success('📧 Password reset email sent!');
+      toast.success(' Password reset email sent!');
     } catch (error) {
       toast.error('Failed to send reset email.');
       console.error(error);
@@ -50,7 +50,7 @@ const ProfileSidebar = ({ isOpen, onClose }) => {
     dispatch(setTheme({ theme: newTheme }));
     try {
       saveTheme(newTheme);
-      toast(`🌓 Theme changed to ${newTheme}`);
+      toast(` Theme changed to ${newTheme}`);
     } catch (error) {
       console.error(error);
     }

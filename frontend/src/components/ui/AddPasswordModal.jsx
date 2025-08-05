@@ -12,7 +12,7 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
       toast.error('Please fill all fields');
       return;
     }
-    onAdd(formData);
+    onAdd({... formData,keywords:keywords});
     setFormData({ site: '', username: '', password: '' });
     setKeywords([]);
     setKeywordInput('');

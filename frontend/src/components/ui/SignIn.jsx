@@ -21,12 +21,12 @@ export default function SignIn({ onNavigate }) {
 
   const onSubmit = async (data) => {
     setLoading(true);
-    const toastId = toast.loading('🔐 Signing in...');
+    const toastId = toast.loading(' Signing in...');
 
     try {
       const userCred = await loginWithEmailPassword(data.email, data.password);
       dispatch(setEmail(userCred.user.email));
-      toast.success('🎉 Login successful!', { id: toastId });
+      toast.success(' Login successful!', { id: toastId });
       if (onNavigate) onNavigate('dashboard');
     } catch (err) {
       const message =
@@ -100,7 +100,7 @@ export default function SignIn({ onNavigate }) {
             type="button"
             className="text-sm text-teal-400 hover:underline hover:text-white"
             onClick={() => {
-              toast('🔁 Switching to password recovery', { icon: '📧' });
+              toast(' Switching to password recovery', { icon: '📧' });
               if (onNavigate) onNavigate('forgotpassword');
             }}
           >

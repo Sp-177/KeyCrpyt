@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import WelcomeCard from "../components/ui/WelcomeCard";
 import FloatingHint from "../components/ui/FloatingHints";
 import PasswordVault from "../components/ui/PasswordVault";
-// import Notifications from "../components/ui/Notifications";
+import Alert from "../components/ui/Alert";
 
 const Dashboard = () => {
   const [user, loading, error] = useAuthState(auth);
@@ -118,7 +118,7 @@ const Dashboard = () => {
 
       {view === 'home' && <WelcomeCard isDark={isDark} user={user} />}
       {view === 'passwords' && <PasswordVault isDark={isDark} user={user} />}
-      {view === 'notifications' && <Notifications isDark={isDark} user={user} />}
+      {view === 'notifications' && <Alert isDark={isDark} user={user} />}
 
       <FloatingHint isDark={isDark} />
     </div>

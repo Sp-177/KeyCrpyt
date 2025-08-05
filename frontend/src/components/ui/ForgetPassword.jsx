@@ -17,10 +17,10 @@ export default function ForgetPassword({ onNavigate }) {
     const toastId = toast.loading('Sending reset link...');
     try {
       await sendResetEmail(data.email);
-      toast.success('✅ Reset link sent to your email', { id: toastId });
+      toast.success(' Reset link sent to your email', { id: toastId });
       onNavigate('signin');
     } catch (err) {
-      toast.error('❌ Error sending reset link', { id: toastId });
+      toast.error(' Error sending reset link', { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -37,10 +37,10 @@ export default function ForgetPassword({ onNavigate }) {
           type="email"
           autoComplete="email"
           {...register('email', {
-            required: '📩 Email is required',
+            required: ' Email is required',
             pattern: {
               value: /^\S+@\S+\.\S+$/,
-              message: '❌ Invalid email format',
+              message: ' Invalid email format',
             },
           })}
           placeholder="you@example.com"

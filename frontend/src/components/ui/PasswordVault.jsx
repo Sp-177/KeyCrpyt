@@ -18,11 +18,36 @@ import AddPasswordModal from './AddPasswordModal';
 import EditPasswordModal from './EditPasswordModal';
 import '../../index.css'
 import {toast} from 'react-hot-toast'
+
 const sampleVault = [
-  { id: 1, site: 'github.com', username: 'john_doe', password: 'Gh@2024SecurePass!' },
-  { id: 2, site: 'gmail.com', username: 'johndoe@gmail.com', password: 'Email$ecur1ty2024' },
-  { id: 3, site: 'twitter.com', username: '@johndoe', password: 'Tw1tt3r@Pass2024' },
-  { id: 4, site: 'linkedin.com', username: 'john.doe.dev', password: 'L1nk3d!n@2024' },
+  {
+    id: 1,
+    site: 'github.com',
+    username: 'john_doe',
+    password: 'Gh@2024SecurePass!',
+    keywords: ['code', 'git', 'developer']
+  },
+  {
+    id: 2,
+    site: 'gmail.com',
+    username: 'johndoe@gmail.com',
+    password: 'Email$ecur1ty2024',
+    keywords: ['email', 'google']
+  },
+  {
+    id: 3,
+    site: 'twitter.com',
+    username: '@johndoe',
+    password: 'Tw1tt3r@Pass2024',
+    keywords: ['social', 'tweets']
+  },
+  {
+    id: 4,
+    site: 'linkedin.com',
+    username: 'john.doe.dev',
+    password: 'L1nk3d!n@2024',
+    keywords: ['jobs', 'network']
+  }
 ];
 
 export default function PasswordVault({ isDark = true, user }) {
@@ -32,7 +57,6 @@ export default function PasswordVault({ isDark = true, user }) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
-
 
   const toggleVisibility = (id) => {
     setVisibleIds((prev) =>
@@ -69,6 +93,7 @@ export default function PasswordVault({ isDark = true, user }) {
   };
 
   const handleAdd = (newEntry) => {
+    console.log(newEntry);
     if (!newEntry.site || !newEntry.username || !newEntry.password) {
       toast.error('Please fill all fields');
       return;
@@ -91,152 +116,164 @@ export default function PasswordVault({ isDark = true, user }) {
 
   return (
     <div className="flex justify-center items-start h-full pt-8 pb-8 px-4">
-      {/* Notifications - Enhanced with hot toast style */}
-      
-
-      {/* Main Vault Container - Properly centered and spaced */}
-      <div className="w-full max-w-6xl  mx-auto">
-        {/* Vault Box with Proper Spacing */}
-        <div className={`rounded-3xl border shadow-2xl p-8 h-[80vh] flex flex-col transition-all duration-300 ${
+      <div className="w-full max-w-6xl mx-auto">
+        {/* Main Vault Container */}
+        <div className={`rounded-3xl border-2 shadow-2xl p-8 h-[80vh] flex flex-col transition-all duration-300 ${
           isDark 
-            ? 'bg-black/40 backdrop-blur-3xl border-white/10 shadow-black/20'
-            : 'bg-white/70 backdrop-blur-xl border-gray-200/50 shadow-gray-900/10'
+            ? 'bg-black/40 backdrop-blur-3xl border-white/20 shadow-black/30'
+            : 'bg-white/70 backdrop-blur-xl border-gray-200/60 shadow-gray-900/15'
         }`}>
 
           {/* Top Controls */}
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6 flex-shrink-0">
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                isDark ? 'text-teal-400' : 'text-teal-500'
+            {/* Enhanced Search Bar */}
+            <div className="relative flex-1 max-w-md group">
+              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
+                isDark ? 'text-teal-400 group-hover:text-teal-300' : 'text-teal-500 group-hover:text-teal-600'
               }`} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search passwords..."
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border transition-all duration-300 ${
+                className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all duration-300 ${
                   isDark
-                    ? 'bg-black/30 border-white/20 text-white placeholder-gray-400 hover:bg-black/40'
-                    : 'bg-white/80 border-gray-300 text-gray-900 placeholder-gray-500 hover:bg-white/90'
-                } focus:outline-none focus:ring-2 focus:ring-cyan-400/20 focus:scale-[1.02]`}
+                    ? 'bg-black/30 border-white/20 text-white placeholder-gray-400 hover:bg-black/40 focus:bg-black/50 hover:border-white/30'
+                    : 'bg-white/80 border-gray-300 text-gray-900 placeholder-gray-500 hover:bg-white/90 focus:bg-white hover:border-gray-400'
+                } focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:scale-[1.01] shadow-lg hover:shadow-xl`}
               />
             </div>
 
-            {/* Add Button */}
+            {/* Enhanced Add Button */}
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2 hover:from-teal-400 hover:to-cyan-400 active:scale-95"
+              className="px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 hover:from-teal-400 hover:to-cyan-400 border border-white/20"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 transition-transform group-hover:rotate-90 duration-300" />
               Add Password
             </button>
           </div>
 
-          {/* Vault Entries - Scrollable Container */}
+          {/* Vault Entries - Enhanced Scrollable Container */}
           <div className="flex-1 overflow-y-auto pr-2 pl-2 custom-scrollbar">
-            <div className="space-y-6">
+            <div className="space-y-5">
             {filteredVault.length === 0 ? (
-              <div className={`text-center py-16 rounded-2xl border ${
-                isDark 
-                  ? 'bg-black/20 border-white/10 text-gray-400' 
-                  : 'bg-white/60 border-gray-200/50 text-gray-500'
-              }`}>
-                <Lock className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-xl font-medium">No passwords found</p>
-                <p className="mt-2">Add your first password to get started</p>
-              </div>
+              <div
+  className={`text-center py-20 px-6 rounded-3xl border-2 transition-all duration-300 hover:scale-[1.015] shadow-md ${
+    isDark
+      ? 'bg-black/25 border-white/15 text-gray-400 hover:bg-black/30 backdrop-blur-xl'
+      : 'bg-white/60 border-gray-200/60 text-gray-500 hover:bg-white/70 backdrop-blur-xl'
+  }`}
+>
+  <div
+    className={`w-24 h-24 mx-auto mb-6 rounded-3xl p-5 flex items-center justify-center transition-all duration-300 hover:scale-105 ${
+      isDark
+        ? 'bg-gradient-to-br from-indigo-500/20 to-sky-500/20 border border-indigo-300/30 shadow-indigo-500/20 shadow-xl'
+        : 'bg-gradient-to-br from-sky-400 to-indigo-500 border border-white/30 shadow-lg'
+    }`}
+  >
+    <Lock className={`w-12 h-12 animate-pulse ${isDark ? 'text-cyan-300' : 'text-white'}`} />
+  </div>
+  <p className="text-2xl font-semibold tracking-wide mb-2">No passwords found</p>
+  <p className="text-base text-opacity-90">
+    Add your first password to get started
+  </p>
+</div>
             ) : (
-              filteredVault.map((entry) => (
+              filteredVault.map((entry, index) => (
                 <div
                   key={entry.id}
-                  className={` group rounded-2xl p-4 border-2 shadow-lg hover:shadow-xl transform hover:scale-[1.0075] transition-all duration-300 ${
+                  className={`group rounded-2xl p-5 border-2 shadow-lg hover:shadow-xl transform hover:scale-[1.005] transition-all duration-300 ${
                     isDark 
-                      ? 'bg-black/50 border-white/10 hover:border-cyan-400/40 hover:bg-black/60'
-                      : 'bg-white/70 border-gray-200/50 hover:border-teal-400/60 hover:bg-white/85'
+                      ? 'bg-black/50 border-white/15 hover:border-cyan-400/50 hover:bg-black/60'
+                      : 'bg-white/70 border-gray-200/60 hover:border-teal-400/70 hover:bg-white/85'
                   }`}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animation: 'slideInUp 0.4s ease-out forwards'
+                  }}
                 >
                   <div className="flex items-center gap-6">
-                    {/* Site Icon */}
-                    <div className={`w-16 h-16 rounded-2xl p-3 flex items-center justify-center shadow-lg flex-shrink-0 ${
+                    {/* Enhanced Site Icon */}
+                    <div className={`w-16 h-16 rounded-2xl p-3 flex items-center justify-center shadow-lg flex-shrink-0 transition-all duration-300 group-hover:scale-105 ${
                       isDark 
-                        ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border border-cyan-400/30'
-                        : 'bg-gradient-to-br from-teal-500 to-cyan-500'
+                        ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border-2 border-cyan-400/30 group-hover:border-cyan-400/50'
+                        : 'bg-gradient-to-br from-teal-500 to-cyan-500 border-2 border-white/30 group-hover:border-white/50'
                     }`}>
                       <img 
                         src={getFavicon(entry.site)} 
                         alt=""
-                        className="w-8 h-8"
+                        className="w-8 h-8 transition-transform duration-300 group-hover:scale-110"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'block';
                         }}
                       />
-                      <Globe className={`w-7 h-7 hidden ${isDark ? 'text-cyan-300' : 'text-white'}`} />
+                      <Globe className={`w-7 h-7 hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'text-cyan-300' : 'text-white'}`} />
                     </div>
 
-                    {/* Content */}
+                    {/* Enhanced Content */}
                     <div className="flex-1 min-w-0 space-y-3">
                       {/* Site Name */}
-                      <h3 className={`text-2xl font-bold truncate ${
-                        isDark ? 'text-white' : 'text-gray-900'
+                      <h3 className={`text-2xl font-bold truncate transition-colors duration-300 ${
+                        isDark ? 'text-white group-hover:text-cyan-300' : 'text-gray-900 group-hover:text-teal-600'
                       }`}>
                         {entry.site}
                       </h3>
                       
                       {/* Username Row */}
                       <div className="flex items-center gap-3">
-                        <User className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <User className="w-4 h-4 text-teal-400 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                         <span className={`text-base truncate flex-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                           {entry.username}
                         </span>
                         <button
                           onClick={() => handleCopy(entry.username, 'Username')}
-                          className={`p-2 rounded-lg transition-all hover:scale-110 ${
+                          className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 ${
                             isDark 
                               ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30' 
                               : 'hover:bg-teal-100 hover:text-teal-600 hover:border hover:border-teal-200'
                           }`}
                           title="Copy username"
                         >
-                          <Copy className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+                          <Copy className="w-4 h-4 text-teal-400 transition-transform duration-300 hover:scale-110" />
                         </button>
                       </div>
                       
                       {/* Password Row */}
                       <div className="flex items-center gap-3">
-                        <Key className="w-4 h-4 text-teal-400 flex-shrink-0" />
-                        <code className={`text-base font-mono px-3 py-2 rounded-lg flex-1 ${
-                          isDark ? 'bg-black/40 text-gray-300' : 'bg-gray-100 text-gray-700'
+                        <Key className="w-4 h-4 text-teal-400 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                        <code className={`text-base font-mono px-3 py-2.5 rounded-lg flex-1 transition-all duration-300 ${
+                          isDark ? 'bg-black/40 text-gray-300 hover:bg-black/50' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         } ${visibleIds.includes(entry.id) ? 'break-all' : ''}`}>
                           {visibleIds.includes(entry.id) ? entry.password : '••••••••••••••••'}
                         </code>
                         <button
                           onClick={() => handleCopy(entry.password)}
-                          className={`p-2 rounded-lg transition-all hover:scale-110 ${
+                          className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 ${
                             isDark 
                               ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30' 
                               : 'hover:bg-teal-100 hover:text-teal-600 hover:border hover:border-teal-200'
                           }`}
                           title="Copy password"
                         >
-                          <Copy className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+                          <Copy className="w-4 h-4 text-teal-400 transition-transform duration-300 hover:scale-110" />
                         </button>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
+                    {/* Enhanced Action Buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => toggleVisibility(entry.id)}
-                        className={`p-3 rounded-xl transition-all hover:scale-110 ${
+                        className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
                           visibleIds.includes(entry.id)
                             ? isDark
-                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/30 hover:bg-cyan-500/30'
-                              : 'bg-cyan-100 text-cyan-600 border border-cyan-200 hover:bg-cyan-200'
+                              ? 'bg-cyan-500/20 text-cyan-400 border-2 border-cyan-400/30 hover:bg-cyan-500/30 hover:border-cyan-400/50'
+                              : 'bg-cyan-100 text-cyan-600 border-2 border-cyan-200 hover:bg-cyan-200 hover:border-cyan-300'
                             : isDark
-                              ? 'hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-400 hover:border hover:border-cyan-400/30'
-                              : 'hover:bg-cyan-100 text-gray-600 hover:text-cyan-600 hover:border hover:border-cyan-200'
+                              ? 'hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-400 hover:border-2 hover:border-cyan-400/30'
+                              : 'hover:bg-cyan-100 text-gray-600 hover:text-cyan-600 hover:border-2 hover:border-cyan-200'
                         }`}
                         title={visibleIds.includes(entry.id) ? 'Hide password' : 'Show password'}
                       >
@@ -244,10 +281,10 @@ export default function PasswordVault({ isDark = true, user }) {
                       </button>
                       <button
                         onClick={() => handleEdit(entry)}
-                        className={`p-3 rounded-xl transition-all hover:scale-110 ${
+                        className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
                           isDark 
-                            ? 'hover:bg-yellow-500/20 text-gray-300 hover:text-yellow-400 hover:border hover:border-yellow-400/30' 
-                            : 'hover:bg-yellow-100 text-gray-600 hover:text-yellow-600 hover:border hover:border-yellow-200'
+                            ? 'hover:bg-yellow-500/20 text-gray-300 hover:text-yellow-400 hover:border-2 hover:border-yellow-400/30' 
+                            : 'hover:bg-yellow-100 text-gray-600 hover:text-yellow-600 hover:border-2 hover:border-yellow-200'
                         }`}
                         title="Edit password"
                       >
@@ -255,10 +292,10 @@ export default function PasswordVault({ isDark = true, user }) {
                       </button>
                       <button
                         onClick={() => handleDelete(entry.id)}
-                        className={`p-3 rounded-xl transition-all hover:scale-110 ${
+                        className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
                           isDark
-                            ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border hover:border-red-400/30'
-                            : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border hover:border-red-200'
+                            ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border-2 hover:border-red-400/30'
+                            : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border-2 hover:border-red-200'
                         }`}
                         title="Delete password"
                       >
@@ -269,7 +306,7 @@ export default function PasswordVault({ isDark = true, user }) {
                 </div>
               ))
             )}
-                      </div>
+            </div>
           </div>
         </div>
       </div>
@@ -295,37 +332,36 @@ export default function PasswordVault({ isDark = true, user }) {
         />
       )}
 
-      {/* Custom Scrollbar Styles */}
+      {/* Enhanced Custom Scrollbar Styles */}
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: ${isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.6)'};
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${isDark ? 'rgba(20, 184, 166, 0.7)' : 'rgba(20, 184, 166, 0.8)'};
-        }
-        @keyframes animate-in {
+        @keyframes slideInUp {
           from {
             opacity: 0;
-            transform: translateX(100%);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
           }
         }
-        .animate-in {
-          animation: animate-in 0.5s ease-out;
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 10px;
         }
-        .slide-in-from-right-5 {
-          animation: animate-in 0.5s ease-out;
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'};
+          border-radius: 12px;
+          margin: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: ${isDark ? 'linear-gradient(to bottom, rgba(20, 184, 166, 0.6), rgba(6, 182, 212, 0.6))' : 'linear-gradient(to bottom, rgba(20, 184, 166, 0.7), rgba(6, 182, 212, 0.7))'};
+          border-radius: 12px;
+          border: 2px solid ${isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'};
+          transition: all 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${isDark ? 'linear-gradient(to bottom, rgba(20, 184, 166, 0.8), rgba(6, 182, 212, 0.8))' : 'linear-gradient(to bottom, rgba(20, 184, 166, 0.9), rgba(6, 182, 212, 0.9))'};
+          transform: scale(1.1);
         }
       `}</style>
     </div>

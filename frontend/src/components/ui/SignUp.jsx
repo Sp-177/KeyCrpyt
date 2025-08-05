@@ -11,8 +11,8 @@ import { useDispatch } from 'react-redux';
 import { setUserEmail } from '../../store/authSlice';
 
 const schema = z.object({
-  email: z.string().email('📧 Invalid email format'),
-  password: z.string().min(6, '🔐 Password must be at least 6 characters'),
+  email: z.string().email(' Invalid email format'),
+  password: z.string().min(6, ' Password must be at least 6 characters'),
 });
 
 export default function SignUp({ onNavigate }) {
@@ -28,18 +28,18 @@ export default function SignUp({ onNavigate }) {
 
   const onSubmit = async (data) => {
     setLoading(true);
-    const toastId = toast.loading('Creating your account... 🚀');
+    const toastId = toast.loading('Creating your account... ');
 
     try {
       const userCred = await registerWithEmailPassword(data.email, data.password);
       dispatch(setUserEmail(userCred.user.email));
-      toast.success('🎉 Account created successfully!', { id: toastId });
+      toast.success(' Account created successfully!', { id: toastId });
       if (onNavigate) onNavigate('dashboard');
     } catch (err) {
       const message =
         err?.code === 'auth/email-already-in-use'
-          ? '📛 Email already registered'
-          : err?.message || '❌ Registration failed. Please try again.';
+          ? ' Email already registered'
+          : err?.message || ' Registration failed. Please try again.';
 
       toast.error(message, { id: toastId });
     } finally {

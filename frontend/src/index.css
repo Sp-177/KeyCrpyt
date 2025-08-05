@@ -76,3 +76,10 @@
 .input-style {
   @apply w-full px-3 py-2 rounded-md bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400;
 }
+/* Optional: custom progress bar + hover pause */
+.react-hot-toast {
+  transition: all 0.4s ease;
+}
+.react-hot-toast:hover {
+  animation-play-state: paused;
+}

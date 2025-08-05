@@ -36,7 +36,7 @@ export default function DropDown() {
     if (option.name === 'Google') {
       if (signingIn) return; // prevent double click
       setSigningIn(true);
-      const toastId = toast.loading('🔄 Signing in with Google...');
+      const toastId = toast.loading(' Signing in with Google...');
 
       try {
         console.log('🔐 Initiating Google sign-in...');
@@ -48,8 +48,8 @@ export default function DropDown() {
           photoURL: result.user.photoURL
         }));
         
-        console.log('✅ Google sign-in successful');
-        toast.success('🎉 Signed in with Google!', { id: toastId });
+        console.log(' Google sign-in successful');
+        toast.success(' Signed in with Google!', { id: toastId });
         navigate('/dashboard');
       } catch (error) {
         console.error('Google sign-in error:', error);
