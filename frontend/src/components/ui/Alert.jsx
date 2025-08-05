@@ -426,7 +426,7 @@ export default function Alerts({ isDark = true, user }) {
                   return (
                     <div
                       key={alert.id}
-                      className={`group rounded-3xl p-6 border-2 shadow-xl hover:shadow-2xl transform hover:scale-[1.005] transition-all duration-300 ${
+                      className={`group rounded-3xl p-4 border-2 shadow-xl hover:shadow-2xl transform hover:scale-[1.005] transition-all duration-300 ${
                         isDark 
                           ? `bg-black/50 backdrop-blur-3xl border-white/15 hover:border-cyan-400/50 hover:bg-black/60 ${!alert.isRead ? 'ring-2 ring-cyan-400/40 shadow-cyan-400/25' : ''}`
                           : `bg-white/70 backdrop-blur-xl border-gray-200/60 hover:border-teal-400/70 hover:bg-white/85 ${!alert.isRead ? 'ring-2 ring-teal-400/40 shadow-teal-400/25' : ''}`

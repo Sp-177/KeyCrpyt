@@ -8,6 +8,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
   const [form, setForm] = useState({ ...entry });
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState(entry.keywords);
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,7 +26,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
       site: form.site.trim(),
       username: form.username.trim(),
       password: form.password.trim(),
-      keywords:keywords
+      keywords: keywords
     });
   };
 
@@ -117,103 +118,105 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
     }
   };
 
+  const handleInfoTabClick = () => {
+    setShowActivityModal(true);
+  };
+
   return (
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      onClick={handleOverlayClick}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"></div>
-      
-      {/* Modal */}
-      <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl border overflow-hidden animate-modal-in ${
-        isDark 
-          ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]' 
-          : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
-      }`}>
-        <div className="p-8 space-y-6">
-          
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Site Icon */}
-              <div className={`w-12 h-12 rounded-2xl p-2 flex items-center justify-center shadow-lg transition-all duration-300 ${
-                isDark 
-                  ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border border-cyan-400/30'
-                  : 'bg-gradient-to-br from-teal-500 to-cyan-500'
-              }`}>
-                <img 
-                  src={getFavicon(entry.site)} 
-                  alt=""
-                  className="w-6 h-6"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
-                  }}
-                />
-                <Globe className={`w-5 h-5 hidden ${isDark ? 'text-cyan-300' : 'text-white'}`} />
-              </div>
-              
-              <div>
-                <h3 className={`text-xl font-bold ${
+    <>
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        onClick={handleOverlayClick}
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"></div>
+        
+        {/* Modal */}
+        <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl border overflow-hidden animate-modal-in ${
+          isDark 
+            ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]' 
+            : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
+        }`}>
+          <div className="p-8 space-y-6">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Site Icon */}
+                <div className={`w-12 h-12 rounded-2xl p-2 flex items-center justify-center shadow-lg transition-all duration-300 ${
                   isDark 
-                    ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent' 
-                    : 'text-gray-900'
+                    ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border border-cyan-400/30'
+                    : 'bg-gradient-to-br from-teal-500 to-cyan-500'
                 }`}>
-                  Edit Password
-                </h3>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {entry.site}
-                </p>
+                  <img 
+                    src={getFavicon(entry.site)} 
+                    alt=""
+                    className="w-6 h-6"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <Globe className={`w-5 h-5 hidden ${isDark ? 'text-cyan-300' : 'text-white'}`} />
+                </div>
+                
+                <div>
+                  <h3 className={`text-xl font-bold ${
+                    isDark 
+                      ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent' 
+                      : 'text-gray-900'
+                  }`}>
+                    Edit Password
+                  </h3>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {entry.site}
+                  </p>
+                </div>
               </div>
+
+              <button
+                onClick={onClose}
+                className={`p-3 rounded-xl transition-all duration-300 ${
+                  isDark 
+                    ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border hover:border-red-400/30 hover:scale-110 hover:rotate-90' 
+                    : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border hover:border-red-200 hover:scale-110 hover:rotate-90'
+                }`}
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <button
-              onClick={onClose}
-              className={`p-3 rounded-xl transition-all duration-300 ${
-                isDark 
-                  ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border hover:border-red-400/30 hover:scale-110 hover:rotate-90' 
-                  : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border hover:border-red-200 hover:scale-110 hover:rotate-90'
-              }`}
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setActiveTab('edit')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeTab === 'edit'
-                  ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg scale-105'
-                  : isDark 
+            {/* Tabs */}
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setActiveTab('edit')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  activeTab === 'edit'
+                    ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg scale-105'
+                    : isDark 
+                      ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105' 
+                      : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50 hover:scale-105'
+                }`}
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit
+              </button>
+              <button
+                onClick={handleInfoTabClick}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  isDark 
                     ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105' 
                     : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50 hover:scale-105'
-              }`}
-            >
-              <Edit3 className="w-4 h-4" />
-              Edit
-            </button>
-            <button
-              onClick={() => setActiveTab('info')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeTab === 'info'
-                  ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg scale-105'
-                  : isDark 
-                    ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105' 
-                    : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50 hover:scale-105'
-              }`}
-            >
-              <Info className="w-4 h-4" />
-              Info
-            </button>
-          </div>
+                }`}
+              >
+                <Info className="w-4 h-4" />
+                Info
+              </button>
+            </div>
 
-          {/* Content */}
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
-            {activeTab === 'edit' ? (
+            {/* Content - Only Edit Form */}
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Website Field */}
                 <div className="relative">
@@ -369,61 +372,64 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                   </button>
                 </div>
               </form>
-            ) : (
-              /* Info Tab */
-              <ActivityInfoModal 
-  isDark={isDark} 
-  onClose={onClose}/>
-            )}
+            </div>
           </div>
         </div>
+
+        {/* Custom Styles */}
+        <style jsx>{`
+          @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          
+          @keyframes modal-in {
+            from {
+              opacity: 0;
+              transform: scale(0.95) translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          
+          .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+          }
+          
+          .animate-modal-in {
+            animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+
+          /* Custom scrollbar */
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
+            border-radius: 10px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: ${isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.6)'};
+            border-radius: 10px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: ${isDark ? 'rgba(20, 184, 166, 0.7)' : 'rgba(20, 184, 166, 0.8)'};
+          }
+        `}</style>
       </div>
 
-      {/* Custom Styles */}
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes modal-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-        
-        .animate-modal-in {
-          animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
-          border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: ${isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.6)'};
-          border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${isDark ? 'rgba(20, 184, 166, 0.7)' : 'rgba(20, 184, 166, 0.8)'};
-        }
-      `}</style>
-    </div>
+      {/* Separate ActivityInfoModal */}
+      {showActivityModal && (
+        <ActivityInfoModal 
+          isDark={isDark} 
+          onClose={() => setShowActivityModal(false)}
+        />
+      )}
+    </>
   );
 }
