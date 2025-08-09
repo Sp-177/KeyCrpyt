@@ -1,0 +1,94 @@
+# --------------------
+# Core Node.js ignores
+# --------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# -------------
+# Environment
+# -------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# -----------------
+# Firebase secrets
+# -----------------
+serviceAccountKey.json
+firebase-debug.log
+.firebaserc
+.firebase/
+
+# ----------------
+# Build outputs
+# ----------------
+dist/
+build/
+tmp/
+temp/
+cache/
+.cache/
+out/
+public/
+coverage/
+
+# -----------------
+# Logs & reports
+# -----------------
+*.log
+logs/
+report.[0-9]*.[0-9]*.[0-9]*.json
+
+# -------------
+# OS Junk
+# -------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# --------------------
+# IDE / Editor files
+# --------------------
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --------------
+# Test files
+# --------------
+*.spec.js
+*.test.js
+*.spec.ts
+*.test.ts
+
+# -------------------
+# Misc. & generated
+# -------------------
+*.pid
+*.seed
+*.pid.lock
+*.gz
+*.zip
+*.tar
+*.tgz
+*.bak
+*.tmp
+*.temp
+*.orig
+*.old
+
