@@ -3,17 +3,17 @@ import { Plus, Globe, User, Key, Sparkles, X, Lightbulb, PlusCircle, Trash2 } fr
 import { toast } from 'react-hot-toast';
 
 export default function AddPasswordModal({ isDark, onClose, onAdd }) {
-  const [formData, setFormData] = useState({ site: '', username: '', password: '' });
+  const [formData, setFormData] = useState({ website: '', username: '', password: '' });
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState([]);
 
   const handleSubmit = () => {
-    if (!formData.site || !formData.username || !formData.password) {
+    if (!formData.website || !formData.username || !formData.password) {
       toast.error('Please fill all fields');
       return;
     }
     onAdd({... formData,keywords:keywords});
-    setFormData({ site: '', username: '', password: '' });
+    setFormData({ website: '', username: '', password: '' });
     setKeywords([]);
     setKeywordInput('');
     
@@ -92,9 +92,9 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
             <div className="relative">
               <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-teal-400" />
               <input
-                value={formData.site}
-                onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                placeholder="Website (e.g. github.com)"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="Webwebsite (e.g. github.com)"
                 className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
                   isDark 
                     ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400' 

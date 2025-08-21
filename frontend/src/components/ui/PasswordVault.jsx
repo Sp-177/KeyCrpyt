@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef,useEffect } from 'react';
 import {
   Lock,
   Eye,
@@ -18,40 +18,13 @@ import AddPasswordModal from './AddPasswordModal';
 import EditPasswordModal from './EditPasswordModal';
 import '../../index.css'
 import {toast} from 'react-hot-toast'
+import { getCredentials,addCredential,putCredential,deleteCredential} from '../../api/credentialService';
 
-const sampleVault = [
-  {
-    id: 1,
-    site: 'github.com',
-    username: 'john_doe',
-    password: 'Gh@2024SecurePass!',
-    keywords: ['code', 'git', 'developer']
-  },
-  {
-    id: 2,
-    site: 'gmail.com',
-    username: 'johndoe@gmail.com',
-    password: 'Email$ecur1ty2024',
-    keywords: ['email', 'google']
-  },
-  {
-    id: 3,
-    site: 'twitter.com',
-    username: '@johndoe',
-    password: 'Tw1tt3r@Pass2024',
-    keywords: ['social', 'tweets']
-  },
-  {
-    id: 4,
-    site: 'linkedin.com',
-    username: 'john.doe.dev',
-    password: 'L1nk3d!n@2024',
-    keywords: ['jobs', 'network']
-  }
-];
+
+
 
 export default function PasswordVault({ isDark = true, user }) {
-  const [vault, setVault] = useState(sampleVault);
+  const [vault, setVault] = useState([]);
   const [visibleIds, setVisibleIds] = useState([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -64,55 +37,111 @@ export default function PasswordVault({ isDark = true, user }) {
     );
   };
 
-  const handleDelete = (id) => {
-    setVault((prev) => prev.filter((entry) => entry.id !== id));
-    toast.success('Password deleted successfully');
-  };
-
   const handleEdit = (entry) => {
     setEditingEntry(entry);
     setShowEditModal(true);
   };
-
-  const handleUpdate = (updatedEntry) => {
-    setVault(prev => prev.map(entry => 
-      entry.id === updatedEntry.id ? updatedEntry : entry
-    ));
-    toast.success('Password updated successfully');
-    setShowEditModal(false);
-    setEditingEntry(null);
-  };
-
-  const handleCopy = async (text, type = 'password') => {
+  
+  useEffect(() => {
+  async function fetchData() {
+    
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${type} copied to clipboard`);
-    } catch (err) {
-      toast.error('Failed to copy');
-    }
-  };
+      const data = await getCredentials();
+      // console.log(data)
+      // console.log(user.getIdToken())
+      setVault(data);
 
-  const handleAdd = (newEntry) => {
-    console.log(newEntry);
-    if (!newEntry.site || !newEntry.username || !newEntry.password) {
-      toast.error('Please fill all fields');
+    } catch (err) {
+      console.error("Failed to fetch credentials:", err);
+      toast.error("Failed to load credentials");
+    }
+  }
+  fetchData();
+}, []);
+
+const handleAdd = async (newEntry) => {
+  try {
+    if (!newEntry.website || !newEntry.username || !newEntry.password) {
+      toast.error("Please fill all fields");
       return;
     }
-    setVault([...vault, { ...newEntry, id: Date.now() }]);
-    toast.success('Password added successfully');
+
+    await addCredential(newEntry);
+
+    const updated = await getCredentials();
+    setVault(updated);
+
+    toast.success("Password added successfully");
     setShowModal(false);
-  };
+  } catch (err) {
+    console.error("Failed to add credential:", err);
+    toast.error("Failed to add password");
+  }
+};
 
-  const filteredVault = vault.filter(
-    (entry) =>
-      entry.site.toLowerCase().includes(search.toLowerCase()) ||
-      entry.username.toLowerCase().includes(search.toLowerCase())
-  );
+const handleUpdate = async (updatedEntry) => {
+  try {
+    // here you might also call updateCredential API if needed
+    // console.log(updatedEntry)
+    await putCredential(updatedEntry);
+    const updated = await getCredentials();
+    setVault(updated);
+    toast.success("Password updated successfully");
+    setShowEditModal(false);
+    setEditingEntry(null);
+  } catch (err) {
+    console.error("Failed to update credential:", err);
+    toast.error("Failed to update password");
+  }
+};
 
-  const getFavicon = (site) => {
-    const domain = site.replace(/(https?:\/\/)?(www\.)?/, '');
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  };
+const handleDelete = async (id) => {
+  try {
+    // also call deleteCredential(id) API if you implement it
+    await deleteCredential(id);
+    const updated = await getCredentials();
+    setVault(updated);
+    toast.success("Password deleted successfully");
+  } catch (err) {
+    console.error("Failed to delete credential:", err);
+    toast.error("Failed to delete password");
+  }
+};
+
+
+const filteredVault = Array.isArray(vault)
+  ? vault.filter((entry) => {
+      if (!entry || typeof entry !== "object") return false;
+
+      const website = entry.website && typeof entry.website === "string"
+        ? entry.website.toLowerCase()
+        : "";
+      const username = entry.username && typeof entry.username === "string"
+        ? entry.username.toLowerCase()
+        : "";
+      const keywords = Array.isArray(entry.keywords)
+        ? entry.keywords.filter((k) => typeof k === "string")
+        : [];
+      const searchText = (search || "").toLowerCase();
+
+      return (
+        website.includes(searchText) ||
+        username.includes(searchText) ||
+        keywords.some((k) => k.includes(searchText))
+      );
+    })
+  : [];
+
+
+
+
+// Safe getFavicon
+const getFavicon = (website) => {
+  if (!website) return "/default-favicon.png"; // fallback icon
+  const domain = website.replace(/(https?:\/\/)?(www\.)?/, '');
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+};
+
 
   return (
     <div className="flex justify-center items-start h-full pt-8 pb-8 px-4">
@@ -194,14 +223,14 @@ export default function PasswordVault({ isDark = true, user }) {
                   }}
                 >
                   <div className="flex items-center gap-6">
-                    {/* Enhanced Site Icon */}
+                    {/* Enhanced website Icon */}
                     <div className={`w-16 h-16 rounded-2xl p-3 flex items-center justify-center shadow-lg flex-shrink-0 transition-all duration-300 group-hover:scale-105 ${
                       isDark 
                         ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border-2 border-cyan-400/30 group-hover:border-cyan-400/50'
                         : 'bg-gradient-to-br from-teal-500 to-cyan-500 border-2 border-white/30 group-hover:border-white/50'
                     }`}>
                       <img 
-                        src={getFavicon(entry.site)} 
+                        src={getFavicon(entry.website)} 
                         alt=""
                         className="w-8 h-8 transition-transform duration-300 group-hover:scale-110"
                         onError={(e) => {
@@ -214,11 +243,11 @@ export default function PasswordVault({ isDark = true, user }) {
 
                     {/* Enhanced Content */}
                     <div className="flex-1 min-w-0 space-y-3">
-                      {/* Site Name */}
+                      {/* website Name */}
                       <h3 className={`text-2xl font-bold truncate transition-colors duration-300 ${
                         isDark ? 'text-white group-hover:text-cyan-300' : 'text-gray-900 group-hover:text-teal-600'
                       }`}>
-                        {entry.site}
+                        {entry.website}
                       </h3>
                       
                       {/* Username Row */}

@@ -17,13 +17,13 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.site?.trim() || !form.username?.trim() || !form.password?.trim()) {
+    if (!form.website?.trim() || !form.username?.trim() || !form.password?.trim()) {
       toast.error('Please fill all fields');
       return;
     }
     onUpdate({
       ...form,
-      site: form.site.trim(),
+      website: form.website.trim(),
       username: form.username.trim(),
       password: form.password.trim(),
       keywords: keywords
@@ -99,9 +99,9 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
     toast.success('Password suggestion applied');
   };
 
-  const getFavicon = (site) => {
-    if (!site) return '';
-    const domain = site.replace(/(https?:\/\/)?(www\.)?/, '').split('/')[0];
+  const getFavicon = (website) => {
+    if (!website) return '';
+    const domain = website.replace(/(https?:\/\/)?(www\.)?/, '').split('/')[0];
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
   };
 
@@ -142,14 +142,14 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {/* Site Icon */}
+                {/* website Icon */}
                 <div className={`w-12 h-12 rounded-2xl p-2 flex items-center justify-center shadow-lg transition-all duration-300 ${
                   isDark 
                     ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border border-cyan-400/30'
                     : 'bg-gradient-to-br from-teal-500 to-cyan-500'
                 }`}>
                   <img 
-                    src={getFavicon(entry.site)} 
+                    src={getFavicon(entry.website)} 
                     alt=""
                     className="w-6 h-6"
                     onError={(e) => {
@@ -169,7 +169,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                     Edit Password
                   </h3>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {entry.site}
+                    {entry.website}
                   </p>
                 </div>
               </div>
@@ -218,15 +218,15 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
             {/* Content - Only Edit Form */}
             <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Website Field */}
+                {/* Webwebsite Field */}
                 <div className="relative">
                   <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-teal-400 z-10" />
                   <input
                     type="text"
-                    name="site"
-                    value={form.site}
+                    name="website"
+                    value={form.website}
                     onChange={handleChange}
-                    placeholder="Website (e.g. github.com)"
+                    placeholder="Webwebsite (e.g. github.com)"
                     className={`w-full pl-12 pr-4 py-3 rounded-2xl border transition-all duration-300 ${
                       isDark
                         ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400 focus:bg-black/30 hover:bg-black/25'
