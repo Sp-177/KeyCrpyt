@@ -18,7 +18,7 @@ import AddPasswordModal from './AddPasswordModal';
 import EditPasswordModal from './EditPasswordModal';
 import '../../index.css'
 import {toast} from 'react-hot-toast'
-import { getCredentials,addCredential,putCredential,deleteCredential} from '../../service/api/credentialService';
+import { getCredentials,postCredential,putCredential,deleteCredential} from '../../service/api/credentialService';
 
 
 
@@ -66,7 +66,7 @@ const handleAdd = async (newEntry) => {
       return;
     }
 
-    await addCredential(newEntry);
+    await postCredential(newEntry);
 
     const updated = await getCredentials();
     setVault(updated);

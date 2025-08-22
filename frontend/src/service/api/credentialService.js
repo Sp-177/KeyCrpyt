@@ -2,8 +2,8 @@
 import api from "./api";
 
 // Add new credentials
-export const addCredential = async (credentialData) => {
-  const response = await api.post("/post/credentials", credentialData);
+export const postCredential = async (credentialData) => {
+  const response = await api.post("/post/credential", credentialData);
   return response.data;
 };
 
