@@ -16,10 +16,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Multer setup (for Excel uploads)
+// Multer setup (for Excel uploads in memory)
 const upload = multer({ storage: multer.memoryStorage() });
 
-/* ================== CREDENTIALS ================== */
+/* ==========================================================
+   CREDENTIALS ROUTES
+========================================================== */
 
 // POST credentials
 app.post("/post/credentials", authenticateUser, async (req, res) => {
@@ -28,6 +30,7 @@ app.post("/post/credentials", authenticateUser, async (req, res) => {
     const encryptedData = encryptSchema(validatedData);
 
     const userId = req.user.uid;
+
     const docRef = await db
       .collection("credentials")
       .doc(userId)
@@ -35,9 +38,10 @@ app.post("/post/credentials", authenticateUser, async (req, res) => {
       .add(encryptedData);
 
     res.status(201).json({
-      message: "Data stored successfully",
+      message: "Credential stored successfully",
       id: docRef.id,
     });
+
   } catch (error) {
     if (error.errors) {
       return res.status(400).json({
@@ -45,15 +49,18 @@ app.post("/post/credentials", authenticateUser, async (req, res) => {
         errors: error.errors,
       });
     }
+
     console.error("POST /post/credentials error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
+
 // GET credentials
 app.get("/get/credentials", authenticateUser, async (req, res) => {
   try {
     const userId = req.user.uid;
+
     const snapshot = await db
       .collection("credentials")
       .doc(userId)
@@ -70,11 +77,13 @@ app.get("/get/credentials", authenticateUser, async (req, res) => {
     }));
 
     res.status(200).json(credentials);
+
   } catch (error) {
     console.error("GET /get/credentials error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // PUT credentials
 app.put("/put/credential/:id", authenticateUser, async (req, res) => {
@@ -94,6 +103,7 @@ app.put("/put/credential/:id", authenticateUser, async (req, res) => {
     await docRef.update(encryptedData);
 
     res.status(200).json({ message: "Credential updated successfully" });
+
   } catch (error) {
     if (error.errors) {
       return res.status(400).json({
@@ -101,10 +111,12 @@ app.put("/put/credential/:id", authenticateUser, async (req, res) => {
         errors: error.errors,
       });
     }
+
     console.error("PUT /put/credential error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // DELETE credentials
 app.delete("/delete/credential/:id", authenticateUser, async (req, res) => {
@@ -119,24 +131,31 @@ app.delete("/delete/credential/:id", authenticateUser, async (req, res) => {
       .doc(credentialId);
 
     const docSnap = await docRef.get();
+
     if (!docSnap.exists) {
       return res.status(404).json({ message: "Credential not found" });
     }
 
     await docRef.delete();
+
     res.status(200).json({ message: "Credential deleted successfully" });
+
   } catch (error) {
     console.error("DELETE /delete/credential error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-/* ================== ACTIVITY INFO ================== */
+
+/* ==========================================================
+   ACTIVITY INFO ROUTES
+========================================================== */
 
 // POST activity info (expects JSON array)
-app.post("/post/activity-info", authenticateUser, async (req, res) => {
+app.post("/post/activity-info/:credential_id", authenticateUser, async (req, res) => {
   try {
-    const userId = req.user.uid;
+    const userId      = req.user.uid;
+    const credentialId = req.params.credential_id;
     const activityData = req.body;
 
     if (!Array.isArray(activityData)) {
@@ -144,12 +163,16 @@ app.post("/post/activity-info", authenticateUser, async (req, res) => {
     }
 
     const docIds = [];
+
     for (const data of activityData) {
       const docRef = await db
         .collection("activity-info")
         .doc(userId)
         .collection("userActivityInfo")
+        .doc(credentialId)       // nested under credentialId
+        .collection("activities")
         .add(data);
+
       docIds.push(docRef.id);
     }
 
@@ -157,29 +180,33 @@ app.post("/post/activity-info", authenticateUser, async (req, res) => {
       message: "All activity data stored successfully",
       ids: docIds,
     });
+
   } catch (error) {
     console.error("POST /post/activity-info error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
+
 // POST activity info (via Excel upload)
 app.post(
-  "/post/activity-info/excel",
+  "/post/activity-info/excel/:credential_id",
   authenticateUser,
-  upload.single("file"), // expects field name "file"
+  upload.single("file"), 
   async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const userId = req.user.uid;
+      const userId      = req.user.uid;
+      const credentialId = req.params.credential_id;
 
-      // Parse Excel file
+      // Parse Excel
       const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
       const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
+      const sheet     = workbook.Sheets[sheetName];
+
       const activityData = xlsx.utils.sheet_to_json(sheet);
 
       if (!Array.isArray(activityData) || activityData.length === 0) {
@@ -187,12 +214,16 @@ app.post(
       }
 
       const docIds = [];
+
       for (const data of activityData) {
         const docRef = await db
           .collection("activity-info")
           .doc(userId)
           .collection("userActivityInfo")
+          .doc(credentialId)    // nested under credentialId
+          .collection("activities")
           .add(data);
+
         docIds.push(docRef.id);
       }
 
@@ -201,6 +232,7 @@ app.post(
         count: docIds.length,
         ids: docIds,
       });
+
     } catch (error) {
       console.error("POST /post/activity-info/excel error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -208,14 +240,19 @@ app.post(
   }
 );
 
-// GET activity info
-app.get("/get/activity-info", authenticateUser, async (req, res) => {
+
+// GET activity info (for a specific credential)
+app.get("/get/activity-info/:credential_id", authenticateUser, async (req, res) => {
   try {
-    const userId = req.user.uid;
+    const userId      = req.user.uid;
+    const credentialId = req.params.credential_id;
+
     const snapshot = await db
       .collection("activity-info")
       .doc(userId)
       .collection("userActivityInfo")
+      .doc(credentialId)       // nested under credentialId
+      .collection("activities")
       .get();
 
     if (snapshot.empty) {
@@ -228,36 +265,46 @@ app.get("/get/activity-info", authenticateUser, async (req, res) => {
     }));
 
     res.status(200).json(activityInfo);
+
   } catch (error) {
     console.error("GET /get/activity-info error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
+
 // PUT activity info
-app.put("/put/activity-info/:id", authenticateUser, async (req, res) => {
+app.put("/put/activity-info/:credential_id/:id", authenticateUser, async (req, res) => {
   try {
-    const userId = req.user.uid;
-    const activityId = req.params.id;
+    const userId      = req.user.uid;
+    const credentialId = req.params.credential_id;
+    const activityId   = req.params.id;
     const activityData = req.body;
 
     const docRef = db
       .collection("activity-info")
       .doc(userId)
       .collection("userActivityInfo")
+      .doc(credentialId)       // nested under credentialId
+      .collection("activities")
       .doc(activityId);
 
     await docRef.update(activityData);
 
     res.status(200).json({ message: "Activity updated successfully" });
+
   } catch (error) {
     console.error("PUT /put/activity-info error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-/* ================== START SERVER ================== */
+
+/* ==========================================================
+   START SERVER
+========================================================== */
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
