@@ -1,4 +1,4 @@
-// src/api/credentialService.js
+// src/service/api/credentialService.js
 import api from "./api";
 
 // Add new credentials

@@ -1,7 +1,7 @@
-// src/api/credentialService.js
+// src/service/api/infoService.js
 import api from "./api";
 
-// Add new credentials
+
 
 
 // Get credentials
