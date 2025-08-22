@@ -54,7 +54,7 @@ const storeCredentialData = async (userId, credentialData) => {
 };
 
 // POST credentials (JSON)
-app.post("/post/credentials", authenticateUser, async (req, res) => {
+app.post("/post/credential", authenticateUser, async (req, res) => {
   try {
     const validatedData = credentialSchema.parse(req.body);
     const encryptedData = encryptSchema(validatedData);
@@ -80,7 +80,7 @@ app.post("/post/credentials", authenticateUser, async (req, res) => {
       });
     }
 
-    console.error("POST /post/credentials error:", error);
+    console.error("POST /post/credential error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -333,7 +333,7 @@ app.post("/post/activity-info/:credential_id", authenticateUser, async (req, res
 
 // POST activity info (via Excel upload)
 app.post(
-  "/post/activity-info/excel/:credential_id",
+  "/post/activity-infos/excel/:credential_id",
   authenticateUser,
   upload.single("file"), 
   async (req, res) => {
@@ -412,7 +412,7 @@ app.post(
       });
 
     } catch (error) {
-      console.error("POST /post/activity-info/excel error:", error);
+      console.error("POST /post/activity-infos/excel error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
@@ -420,7 +420,7 @@ app.post(
 
 
 // GET activity info (for a specific credential)
-app.get("/get/activity-info/:credential_id", authenticateUser, async (req, res) => {
+app.get("/get/activity-infos/:credential_id", authenticateUser, async (req, res) => {
   try {
     const userId = req.user.uid;
     const credentialId = req.params.credential_id;
@@ -445,7 +445,7 @@ app.get("/get/activity-info/:credential_id", authenticateUser, async (req, res) 
     res.status(200).json(activityInfo);
 
   } catch (error) {
-    console.error("GET /get/activity-info error:", error);
+    console.error("GET /get/activity-infos error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -532,7 +532,7 @@ app.post("/post/compromised-info", authenticateUser, async (req, res) => {
 
 // POST compromised info (via Excel upload)
 app.post(
-  "/post/compromised-info/excel",
+  "/post/compromised-infos/excel",
   authenticateUser,
   upload.single("file"),
   async (req, res) => {
@@ -610,14 +610,14 @@ app.post(
       });
 
     } catch (error) {
-      console.error("POST /post/compromised-info/excel error:", error);
+      console.error("POST /post/compromised-infos/excel error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
 );
 
 // GET compromised info (all datasets with compromised credentials)
-app.get("/get/compromised-info", authenticateUser, async (req, res) => {
+app.get("/get/compromised-infos", authenticateUser, async (req, res) => {
   try {
     const userId = req.user.uid;
 
