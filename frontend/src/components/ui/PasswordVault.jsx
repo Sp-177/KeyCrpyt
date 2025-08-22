@@ -18,7 +18,7 @@ import AddPasswordModal from './AddPasswordModal';
 import EditPasswordModal from './EditPasswordModal';
 import '../../index.css'
 import {toast} from 'react-hot-toast'
-import { getCredentials,addCredential,putCredential,deleteCredential} from '../../api/credentialService';
+import { getCredentials,addCredential,putCredential,deleteCredential} from '../../service/api/credentialService';
 
 
 
