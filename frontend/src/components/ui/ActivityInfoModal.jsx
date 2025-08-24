@@ -1,76 +1,46 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Globe, Monitor, Smartphone, MapPin, Clock, Shield, AlertTriangle, Filter, Search, Download, RefreshCw, ChevronDown } from 'lucide-react';
+import { getActivityInfos, putActivityInfo } from '../../service/api/ActivityInfoService';
 
-export default function ActivityInfoModal({ isDark, onClose }) {
-  const [activityList, setActivityList] = useState([
-    {
-      id: 1,
-      device: 'Chrome on Windows',
-      location: 'Raipur, India',
-      timestamp: '2025-08-05 10:45 AM',
-      confirmed: null,
-      deviceType: 'desktop',
-      ipAddress: '192.168.1.105',
-      suspicious: false,
-      loginMethod: 'Password',
-      sessionActive: true
-    },
-    {
-      id: 2,
-      device: 'Safari on iPhone',
-      location: 'Mumbai, India',
-      timestamp: '2025-08-04 8:22 PM',
-      confirmed: null,
-      deviceType: 'mobile',
-      ipAddress: '203.122.45.78',
-      suspicious: true,
-      loginMethod: 'Password',
-      sessionActive: false
-    },
-    {
-      id: 3,
-      device: 'Edge on Windows',
-      location: 'Nagpur, India',
-      timestamp: '2025-08-02 6:10 PM',
-      confirmed: null,
-      deviceType: 'desktop',
-      ipAddress: '10.0.0.23',
-      suspicious: false,
-      loginMethod: '2FA',
-      sessionActive: false
-    },
-    {
-      id: 4,
-      device: 'Firefox on Linux',
-      location: 'Delhi, India',
-      timestamp: '2025-08-01 2:30 PM',
-      confirmed: true,
-      deviceType: 'desktop',
-      ipAddress: '172.16.0.45',
-      suspicious: false,
-      loginMethod: 'Password',
-      sessionActive: false
-    },
-    {
-      id: 5,
-      device: 'Chrome on Android',
-      location: 'Unknown Location',
-      timestamp: '2025-07-30 11:45 PM',
-      confirmed: false,
-      deviceType: 'mobile',
-      ipAddress: '45.123.67.89',
-      suspicious: true,
-      loginMethod: 'Password',
-      sessionActive: false
-    }
-  ]);
-
+export default function ActivityInfoModal({ isDark = false, credential_id = "demo-123", onClose = () => {} }) {
+  const [activityList, setActivityList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all'); // all, suspicious, confirmed, unconfirmed
-  const [sortBy, setSortBy] = useState('newest'); // newest, oldest, device, location
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedActivities, setSelectedActivities] = useState(new Set());
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      if (!credential_id) {
+        setError("No credential ID provided");
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const res = await getActivityInfos(credential_id);
+        // console.log(res)
+        if (res) {
+          setActivityList(res);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError(err.message || "Failed to fetch activities");
+        setActivityList([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [credential_id]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -78,79 +48,177 @@ export default function ActivityInfoModal({ isDark, onClose }) {
     }
   };
 
-  const handleConfirm = (id, response) => {
-    const updated = activityList.map(item => 
-      item.id === id ? { ...item, confirmed: response } : item
-    );
-    setActivityList(updated);
-    
-    // Show toast notification
-    const toastMessage = response ? "Marked as 'Yes'" : "Marked as 'No'";
-    console.log(toastMessage); // Replace with actual toast implementation
+  const handleConfirm = async (id, response) => {
+    if (typeof id === 'undefined' || response === null || response === undefined) {
+      console.error("Invalid parameters for handleConfirm");
+      return;
+    }
+
+    try {
+      // Call the API to update the activity info
+      await putActivityInfo(credential_id, { id, confirmed: response });
+      
+      // Update the local state
+      setActivityList(prev => prev.map(item => 
+        item.id === id ? { ...item, confirmed: response } : item
+      ));
+      
+      const toastMessage = response==='Yes' ? "Marked as 'Yes'" : "Marked as 'No'";
+      console.log(toastMessage);
+    } catch (error) {
+      console.error("Error updating activity:", error);
+      setError("Failed to update activity status");
+    }
   };
 
-  const handleTerminateSession = (id) => {
-    const updated = activityList.map(item =>
-      item.id === id ? { ...item, sessionActive: false } : item
-    );
-    setActivityList(updated);
-    console.log('Session terminated');
+  const handleTerminateSession = async (id) => {
+    if (typeof id === 'undefined') {
+      console.error("Invalid ID for handleTerminateSession");
+      return;
+    }
+
+    try {
+      // Call the API to terminate the session
+      await putActivityInfo(credential_id, { id, sessionActive: false });
+      
+      // Update the local state
+      setActivityList(prev => prev.map(item =>
+        item.id === id ? { ...item, sessionActive: false } : item
+      ));
+      console.log('Session terminated for ID:', id);
+    } catch (error) {
+      console.error("Error terminating session:", error);
+      setError("Failed to terminate session");
+    }
   };
 
-  const handleBulkAction = (action) => {
+  const handleBulkAction = async (action) => {
     if (selectedActivities.size === 0) return;
     
-    const updated = activityList.map(item => {
-      if (selectedActivities.has(item.id)) {
+    const validActions = ['confirm-yes', 'confirm-no', 'terminate'];
+    if (!validActions.includes(action)) {
+      console.error("Invalid bulk action:", action);
+      return;
+    }
+
+    try {
+      const updatePromises = Array.from(selectedActivities).map(async (id) => {
+        let updateData = { id };
         switch (action) {
           case 'confirm-yes':
-            return { ...item, confirmed: true };
+            updateData.confirmed = 'Yes';
+            break;
           case 'confirm-no':
-            return { ...item, confirmed: false };
+            updateData.confirmed = 'No';
+            break;
           case 'terminate':
-            return { ...item, sessionActive: false };
-          default:
-            return item;
+            updateData.sessionActive = false;
+            break;
         }
-      }
-      return item;
-    });
-    
-    setActivityList(updated);
-    setSelectedActivities(new Set());
-    console.log(`Bulk action: ${action}`);
+        return putActivityInfo(credential_id, updateData);
+      });
+
+      await Promise.all(updatePromises);
+      
+      // Update local state after all API calls succeed
+      setActivityList(prev => prev.map(item => {
+        if (selectedActivities.has(item.id)) {
+          switch (action) {
+            case 'confirm-yes':
+              return { ...item, confirmed: 'Yes' };
+            case 'confirm-no':
+              return { ...item, confirmed: 'No' };
+            case 'terminate':
+              return { ...item, sessionActive: false };
+            default:
+              return item;
+          }
+        }
+        return item;
+      }));
+      
+      setSelectedActivities(new Set());
+      console.log(`Bulk action completed: ${action} on ${selectedActivities.size} items`);
+    } catch (error) {
+      console.error("Error performing bulk action:", error);
+      setError("Failed to perform bulk action");
+    }
   };
 
   const handleRefresh = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    console.log('Activity refreshed');
+    setError(null);
+    
+    try {
+      const res = await getActivityInfos(credential_id);
+      if (res) {
+        setActivityList(res);
+      }
+    } catch (err) {
+      console.error("Error refreshing activities:", err);
+      setError("Failed to refresh activities");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExport = () => {
-    const csvContent = activityList.map(item => 
-      `"${item.device}","${item.location}","${item.timestamp}","${item.confirmed || 'Pending'}","${item.ipAddress}","${item.suspicious ? 'Yes' : 'No'}"`
-    ).join('\n');
-    
-    const header = 'Device,Location,Timestamp,Confirmed,IP Address,Suspicious\n';
-    const blob = new Blob([header + csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'activity-log.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    if (activityList.length === 0) {
+      console.log("No data to export");
+      return;
+    }
+
+    try {
+      const csvContent = activityList.map(item => {
+        const confirmed = item.confirmed === null ? 'Pending' : (item.confirmed==='Yes' ? 'Yes' : 'No');
+        const suspicious = item.suspicious ? 'Yes' : 'No';
+        
+        return `"${item.device || ''}","${item.city || ''}","${item.state || ''}","${item.country || ''}","${item.timestamp || ''}","${confirmed}","${item.ipAddress || ''}","${suspicious}"`;
+      }).join('\n');
+      
+      const header = 'Device,City,State,Country,Timestamp,Confirmed,IP Address,Suspicious\n';
+      const blob = new Blob([header + csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `activity-log-${new Date().toISOString().split('T')[0]}.csv`;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      console.log("Export completed successfully");
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
   };
 
   const filteredAndSortedActivities = useMemo(() => {
+    if (!Array.isArray(activityList)) return [];
+
     let filtered = activityList.filter(item => {
-      const matchesSearch = item.device.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.location.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!item) return false;
+
+      const searchFields = [
+        item.device || '',
+        item.city || '',
+        item.state || '',
+        item.country || '',
+        item.location || ''
+      ];
+      
+      const matchesSearch = searchTerm === '' || 
+        searchFields.some(field => 
+          field.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       
       const matchesFilter = filterType === 'all' ||
-                           (filterType === 'suspicious' && item.suspicious) ||
+                           (filterType === 'suspicious' && item.suspicious === true) ||
                            (filterType === 'confirmed' && item.confirmed !== null) ||
                            (filterType === 'unconfirmed' && item.confirmed === null);
       
@@ -158,15 +226,21 @@ export default function ActivityInfoModal({ isDark, onClose }) {
     });
 
     filtered.sort((a, b) => {
+      if (!a || !b) return 0;
+
       switch (sortBy) {
         case 'oldest':
-          return new Date(a.timestamp) - new Date(b.timestamp);
+          return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
         case 'device':
-          return a.device.localeCompare(b.device);
-        case 'location':
-          return a.location.localeCompare(b.location);
+          return (a.device || '').localeCompare(b.device || '');
+        case 'city':
+          return (a.city || '').localeCompare(b.city || '');
+        case 'state':
+          return (a.state || '').localeCompare(b.state || '');
+        case 'country':
+          return (a.country || '').localeCompare(b.country || '');
         default: // newest
-          return new Date(b.timestamp) - new Date(a.timestamp);
+          return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
       }
     });
 
@@ -177,8 +251,22 @@ export default function ActivityInfoModal({ isDark, onClose }) {
     return deviceType === 'mobile' ? Smartphone : Monitor;
   };
 
-  const suspiciousCount = activityList.filter(item => item.suspicious).length;
-  const unconfirmedCount = activityList.filter(item => item.confirmed === null).length;
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'Unknown';
+    try {
+      return new Date(timestamp).toLocaleString();
+    } catch {
+      return 'Invalid Date';
+    }
+  };
+
+  const getLocationString = (entry) => {
+    const parts = [entry.city, entry.state, entry.country].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : 'Unknown Location';
+  };
+
+  const suspiciousCount = activityList.filter(item => item && item.suspicious === true).length;
+  const unconfirmedCount = activityList.filter(item => item && item.confirmed === null).length;
 
   return (
     <div 
@@ -235,18 +323,21 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                     : 'hover:bg-blue-100 text-gray-600 hover:text-blue-600'
                 } ${isLoading ? 'animate-spin' : 'hover:scale-110'}`}
                 title="Refresh"
+                aria-label="Refresh activities"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
               
               <button
                 onClick={handleExport}
+                disabled={activityList.length === 0}
                 className={`p-2 rounded-xl transition-all duration-300 ${
                   isDark 
                     ? 'hover:bg-green-500/20 text-gray-300 hover:text-green-400' 
                     : 'hover:bg-green-100 text-gray-600 hover:text-green-600'
-                } hover:scale-110`}
+                } hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                 title="Export CSV"
+                aria-label="Export activity data as CSV"
               >
                 <Download className="w-4 h-4" />
               </button>
@@ -259,11 +350,24 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                     : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border hover:border-red-200 hover:scale-110'
                 }`}
                 title="Close"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className={`p-4 rounded-xl border ${
+              isDark ? 'bg-red-500/20 border-red-400/30 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Error: {error}</span>
+              </div>
+            </div>
+          )}
 
           {/* Search and Filter Controls */}
           <div className="space-y-4">
@@ -290,6 +394,8 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                     ? 'bg-black/20 border-white/10 text-white hover:bg-black/30'
                     : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
                 }`}
+                aria-expanded={showFilters}
+                aria-label="Toggle filters"
               >
                 <Filter className="w-4 h-4" />
                 Filters
@@ -298,7 +404,9 @@ export default function ActivityInfoModal({ isDark, onClose }) {
             </div>
 
             {showFilters && (
-              <div className="flex flex-wrap gap-4 p-4 rounded-xl border animate-fade-in">
+              <div className={`flex flex-wrap gap-4 p-4 rounded-xl border animate-fade-in ${
+                isDark ? 'border-white/10' : 'border-gray-200'
+              }`}>
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
@@ -307,6 +415,7 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                       ? 'bg-black/20 border-white/20 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
                   }`}
+                  aria-label="Filter by activity type"
                 >
                   <option value="all">All Activities</option>
                   <option value="suspicious">Suspicious Only</option>
@@ -322,11 +431,14 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                       ? 'bg-black/20 border-white/20 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
                   }`}
+                  aria-label="Sort activities by"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                   <option value="device">By Device</option>
-                  <option value="location">By Location</option>
+                  <option value="city">By City</option>
+                  <option value="state">By State</option>
+                  <option value="country">By Country</option>
                 </select>
               </div>
             )}
@@ -377,12 +489,19 @@ export default function ActivityInfoModal({ isDark, onClose }) {
 
           {/* Content */}
           <div className="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
-            {filteredAndSortedActivities.length === 0 ? (
+            {isLoading ? (
               <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                No activities match your current filters.
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                Loading activities...
+              </div>
+            ) : filteredAndSortedActivities.length === 0 ? (
+              <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {activityList.length === 0 ? 'No activities found.' : 'No activities match your current filters.'}
               </div>
             ) : (
               filteredAndSortedActivities.map((entry) => {
+                if (!entry || !entry.id) return null;
+                
                 const DeviceIcon = getDeviceIcon(entry.deviceType);
                 const isSelected = selectedActivities.has(entry.id);
                 
@@ -414,9 +533,18 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => {}}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            const newSelected = new Set(selectedActivities);
+                            if (e.target.checked) {
+                              newSelected.add(entry.id);
+                            } else {
+                              newSelected.delete(entry.id);
+                            }
+                            setSelectedActivities(newSelected);
+                          }}
                           className="w-4 h-4 text-teal-500 rounded focus:ring-teal-500"
-                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select ${entry.device || 'activity'}`}
                         />
                         
                         <div className={`w-10 h-10 rounded-xl p-2 flex items-center justify-center flex-shrink-0 ${
@@ -430,7 +558,7 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <div className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {entry.device}
+                              {entry.device || 'Unknown Device'}
                             </div>
                             {entry.suspicious && (
                               <AlertTriangle className="w-4 h-4 text-red-400" title="Suspicious activity" />
@@ -444,8 +572,8 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                           </div>
                           <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             <MapPin className="w-4 h-4 text-teal-400" />
-                            {entry.location}
-                            <span className="text-xs">• {entry.ipAddress}</span>
+                            {getLocationString(entry)}
+                            <span className="text-xs">• {entry.ip || 'N/A'}</span>
                           </div>
                         </div>
                         
@@ -454,10 +582,10 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                             isDark ? 'bg-black/30 text-gray-400' : 'bg-gray-200 text-gray-600'
                           }`}>
                             <Clock className="w-3 h-3" />
-                            {entry.timestamp}
+                            {formatTimestamp(entry.timestamp)}
                           </div>
                           <div className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            {entry.loginMethod}
+                            {entry.loginMethod || ''}
                           </div>
                         </div>
                       </div>
@@ -491,7 +619,7 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleConfirm(entry.id, true);
+                                  handleConfirm(entry.id, 'Yes');
                                 }}
                                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
                                   isDark
@@ -504,7 +632,7 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleConfirm(entry.id, false);
+                                  handleConfirm(entry.id, 'No');
                                 }}
                                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
                                   isDark
@@ -517,16 +645,16 @@ export default function ActivityInfoModal({ isDark, onClose }) {
                             </div>
                           ) : (
                             <div className={`flex items-center gap-2 px-3 py-1 rounded-xl text-sm font-medium border ${
-                              entry.confirmed
+                              entry.confirmed==='Yes'
                                 ? (isDark ? 'bg-green-500/20 text-green-300 border-green-400/30' : 'bg-green-100 text-green-700 border-green-200')
                                 : (isDark ? 'bg-red-500/20 text-red-300 border-red-400/30' : 'bg-red-100 text-red-700 border-red-200')
                             }`}>
                               <div className={`w-2 h-2 rounded-full ${
-                                entry.confirmed 
+                                entry.confirmed==='Yes'
                                   ? 'bg-green-400' 
                                   : 'bg-red-400'
                               }`}></div>
-                              Marked: {entry.confirmed ? 'Yes' : 'No'}
+                              Marked: {entry.confirmed==='Yes' ? 'Yes' : 'No'}
                             </div>
                           )}
                         </div>
@@ -541,7 +669,7 @@ export default function ActivityInfoModal({ isDark, onClose }) {
       </div>
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }

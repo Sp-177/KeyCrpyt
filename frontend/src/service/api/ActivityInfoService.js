@@ -5,8 +5,8 @@ import api from "./api";
 
 
 // Get credentials
-export const getActivityInfos = async () => {
-  const response = await api.get("/get/activity-infos");
+export const getActivityInfos = async (credential_id) => {
+  const response = await api.get(`/get/activity-infos/${credential_id}`);
   return response.data;
 };
 

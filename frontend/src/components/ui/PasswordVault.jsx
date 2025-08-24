@@ -48,7 +48,7 @@ export default function PasswordVault({ isDark = true, user }) {
     try {
       const data = await getCredentials();
       // console.log(data)
-      // console.log(user.getIdToken())
+      console.log(user.getIdToken())
       setVault(data);
 
     } catch (err) {

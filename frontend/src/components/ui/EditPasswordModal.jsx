@@ -119,6 +119,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
   };
 
   const handleInfoTabClick = () => {
+    
     setShowActivityModal(true);
   };
 
@@ -426,7 +427,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
       {/* Separate ActivityInfoModal */}
       {showActivityModal && (
         <ActivityInfoModal 
-          isDark={isDark} 
+          isDark={isDark}
+          credential_id={entry.id}
           onClose={() => setShowActivityModal(false)}
         />
       )}
