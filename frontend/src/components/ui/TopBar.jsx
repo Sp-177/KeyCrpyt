@@ -22,13 +22,14 @@ useEffect(() => {
         photoURL: firebaseUser.photoURL || defaultPic,
       })
     );
+    // console.log('User authenticated:', firebaseUser.photoURL);
   } else {
     dispatch(clearUser());
   }
 }, [firebaseUser, dispatch]);
 
   const user = useSelector((state) => state.auth);
-  
+
 
   const toggleSidebar = () => setShowSidebar((prev) => !prev);
 
@@ -45,18 +46,18 @@ useEffect(() => {
       >
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-4 relative z-10">
-          <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl p-2 
+          <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl p-2
             flex items-center justify-center shadow-md backdrop-blur-md">
             <img
               src={logo}
               alt="KeyCrypt Logo"
               className="w-full h-full object-contain
-                brightness-[1.6] contrast-[1.2] saturate-[1.8] 
+                brightness-[1.6] contrast-[1.2] saturate-[1.8]
                 drop-shadow-[0_0_4px_rgba(13,255,247,0.3)]"
             />
           </div>
 
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-teal-300 to-cyan-300 
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-teal-300 to-cyan-300
             bg-clip-text text-transparent tracking-wide drop-shadow-sm select-none">
             KeyCrypt
           </h1>
@@ -103,7 +104,7 @@ useEffect(() => {
           {user.isAuthenticated && (
             <div
               onClick={toggleSidebar}
-              className="w-14 h-14 cursor-pointer bg-gradient-to-br from-slate-800/60 to-gray-900/50 
+              className="w-14 h-14 cursor-pointer bg-gradient-to-br from-slate-800/60 to-gray-900/50
                 backdrop-blur-xl border border-cyan-400/30 rounded-full overflow-hidden
                 shadow-xl hover:scale-110 hover:shadow-2xl
                 hover:ring-4 hover:ring-cyan-400/40
