@@ -1,6 +1,3 @@
-// passwordFeatures.js
-import crypto from 'crypto';
-
 /**
  * Extracts ML-ready numeric features from a password.
  * Designed to be data-driven — no hardcoded weak patterns.
@@ -22,10 +19,10 @@ export function extractPasswordFeatures(password, userData = {}) {
   // Character transition diversity (bigram distribution)
   const transitionDiversity = calcTransitionDiversity(password);
 
-  // Levenshtein similarity to user data (if any)
+  // Similarity to user data (if any)
   const similarityToUser = calcSimilarityToUser(password, userData);
 
-  // Hash embedding (for ML use, optional)
+  // Stable numeric hash-based vectorization
   const hashedVector = numericHashVector(password);
 
   return {
@@ -50,7 +47,7 @@ function calculateEntropy(str) {
   return -probs.reduce((sum, p) => sum + p * Math.log2(p), 0);
 }
 
-/** Character transition diversity: counts how varied pairs are */
+/** Character transition diversity */
 function calcTransitionDiversity(password) {
   if (password.length < 2) return 0;
   const transitions = new Set();
@@ -69,15 +66,21 @@ function calcSimilarityToUser(password, userData) {
   return matchCount / password.length;
 }
 
-/** Numeric hash-based vectorization (stable embedding for ML) */
+/**
+ * Browser-safe numeric hash vectorization.
+ * Creates deterministic numeric features without Node crypto.
+ */
 function numericHashVector(password, dims = 8) {
   const vec = {};
   for (let i = 0; i < dims; i++) {
-    const hash = crypto
-      .createHash('sha256')
-      .update(password + i)
-      .digest('hex');
-    vec[`h${i}`] = parseInt(hash.slice(0, 8), 16) / 0xffffffff;
+    let hash = 0;
+    const seed = password + i;
+    for (let j = 0; j < seed.length; j++) {
+      hash = (hash << 5) - hash + seed.charCodeAt(j);
+      hash |= 0; // Convert to 32-bit integer
+    }
+    // Normalize between 0 and 1
+    vec[`h${i}`] = Math.abs(hash % 10000) / 10000;
   }
   return vec;
 }

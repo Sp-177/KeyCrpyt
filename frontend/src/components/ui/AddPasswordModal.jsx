@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Plus, Globe, User, Key, Sparkles, X, Lightbulb, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 
-export default function AddPasswordModal({ isDark, onClose, onAdd }) {
+export default function AddPasswordModal({ isDark, onClose, onAdd ,setFeatures}) {
   const [formData, setFormData] = useState({ website: '', username: '', password: '' });
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState([]);
@@ -16,7 +17,10 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
     setFormData({ website: '', username: '', password: '' });
     setKeywords([]);
     setKeywordInput('');
-    
+    const features = extractPasswordFeatures(formData.password);
+    setFeatures(features);
+    // console.log('Extracted Password Features:', features);
+
   };
 
   const addKeyword = () => {
@@ -54,23 +58,23 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10"></div>
       <div className={`relative z-20 w-full max-w-lg rounded-3xl shadow-2xl border transform transition-all duration-300 overflow-hidden ${
-        isDark 
-          ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]' 
+        isDark
+          ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]'
           : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
       }`}>
         <div className="relative z-30 p-8 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-2xl p-2 flex items-center justify-center ${
-                isDark 
-                  ? 'bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-cyan-400/30' 
+                isDark
+                  ? 'bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-cyan-400/30'
                   : 'bg-gradient-to-br from-teal-500 to-cyan-500'
               }`}>
                 <Plus className={`w-6 h-6 ${isDark ? 'text-cyan-300' : 'text-white'}`} />
               </div>
               <h3 className={`text-xl font-bold ${
-                isDark 
-                  ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent' 
+                isDark
+                  ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent'
                   : 'text-gray-900'
               }`}>
                 Add Password
@@ -79,8 +83,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
             <button
               onClick={onClose}
               className={`p-2 rounded-xl transition-all hover:scale-110 ${
-                isDark 
-                  ? 'hover:bg-white/10 text-gray-400 hover:text-white' 
+                isDark
+                  ? 'hover:bg-white/10 text-gray-400 hover:text-white'
                   : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -96,8 +100,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 placeholder="Webwebsite (e.g. github.com)"
                 className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
-                  isDark 
-                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400' 
+                  isDark
+                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400'
                     : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                 } focus:outline-none focus:ring-2 focus:ring-cyan-400/30`}
               />
@@ -110,8 +114,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 placeholder="Username or Email"
                 className={`w-full pl-12 pr-4 py-3 rounded-2xl border ${
-                  isDark 
-                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400' 
+                  isDark
+                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400'
                     : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                 } focus:outline-none focus:ring-2 focus:ring-cyan-400/30`}
               />
@@ -124,8 +128,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="Password"
                 className={`w-full pl-12 pr-12 py-3 rounded-2xl border ${
-                  isDark 
-                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400' 
+                  isDark
+                    ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400'
                     : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                 } focus:outline-none focus:ring-2 focus:ring-cyan-400/30`}
               />
@@ -148,8 +152,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
                   maxLength={20}
                   placeholder="Enter keyword & press enter"
                   className={`flex-1 pl-4 pr-12 py-3 rounded-2xl border ${
-                    isDark 
-                      ? 'bg-black/20 border-white/10 text-white placeholder-gray-400' 
+                    isDark
+                      ? 'bg-black/20 border-white/10 text-white placeholder-gray-400'
                       : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                   } focus:outline-none focus:ring-2 focus:ring-yellow-400/20`}
                 />
@@ -162,8 +166,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
               </div>
               {keywords.length > 0 && (
                 <div className={`max-h-24 overflow-y-auto rounded-xl p-2 text-sm flex flex-wrap gap-2 ${
-                  isDark 
-                    ? 'bg-black/30 border border-white/10 text-white' 
+                  isDark
+                    ? 'bg-black/30 border border-white/10 text-white'
                     : 'bg-gray-100 border border-gray-200 text-gray-900'
                 }`}>
                   {keywords.map((word, index) => (
@@ -181,8 +185,8 @@ export default function AddPasswordModal({ isDark, onClose, onAdd }) {
             <button
               onClick={onClose}
               className={`px-4 py-2 rounded-2xl font-medium ${
-                isDark 
-                  ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10' 
+                isDark
+                  ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >

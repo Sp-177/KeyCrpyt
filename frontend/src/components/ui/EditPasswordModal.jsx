@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { X, Info, Edit3, Globe, User, Key, Sparkles, Lightbulb, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ActivityInfoModal from './ActivityInfoModal';
+import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 
-export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) {
+export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,setFeatures }) {
   const [activeTab, setActiveTab] = useState('edit');
   const [form, setForm] = useState({ ...entry });
   const [keywordInput, setKeywordInput] = useState('');
@@ -28,6 +29,9 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
       password: form.password.trim(),
       keywords: keywords
     });
+    const features = extractPasswordFeatures(form.password);
+    // console.log('Extracted Password Features:', features);
+    setFeatures(features);
   };
 
   const addKeyword = () => {
@@ -77,8 +81,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
       const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const numbers = '0123456789';
       const symbols = '@#$%&*!?';
-      
-      suggestion = 
+
+      suggestion =
         chars.charAt(Math.floor(Math.random() * chars.length)) +
         upperChars.charAt(Math.floor(Math.random() * upperChars.length)) +
         numbers.charAt(Math.floor(Math.random() * numbers.length)) +
@@ -94,7 +98,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
       const symbol = symbols.charAt(Math.floor(Math.random() * symbols.length));
       suggestion = `${base}${randomNum}${symbol}`;
     }
-    
+
     setForm(prev => ({ ...prev, password: suggestion }));
     toast.success('Password suggestion applied');
   };
@@ -119,38 +123,38 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
   };
 
   const handleInfoTabClick = () => {
-    
+
     setShowActivityModal(true);
   };
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
         onClick={handleOverlayClick}
       >
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"></div>
-        
+
         {/* Modal */}
         <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl border overflow-hidden animate-modal-in ${
-          isDark 
-            ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]' 
+          isDark
+            ? 'bg-black/40 backdrop-blur-3xl border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]'
             : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
         }`}>
           <div className="p-8 space-y-6">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {/* website Icon */}
                 <div className={`w-12 h-12 rounded-2xl p-2 flex items-center justify-center shadow-lg transition-all duration-300 ${
-                  isDark 
+                  isDark
                     ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border border-cyan-400/30'
                     : 'bg-gradient-to-br from-teal-500 to-cyan-500'
                 }`}>
-                  <img 
-                    src={getFavicon(entry.website)} 
+                  <img
+                    src={getFavicon(entry.website)}
                     alt=""
                     className="w-6 h-6"
                     onError={(e) => {
@@ -160,11 +164,11 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                   />
                   <Globe className={`w-5 h-5 hidden ${isDark ? 'text-cyan-300' : 'text-white'}`} />
                 </div>
-                
+
                 <div>
                   <h3 className={`text-xl font-bold ${
-                    isDark 
-                      ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent' 
+                    isDark
+                      ? 'bg-gradient-to-r from-white via-teal-300 to-cyan-300 bg-clip-text text-transparent'
                       : 'text-gray-900'
                   }`}>
                     Edit Password
@@ -178,8 +182,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
               <button
                 onClick={onClose}
                 className={`p-3 rounded-xl transition-all duration-300 ${
-                  isDark 
-                    ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border hover:border-red-400/30 hover:scale-110 hover:rotate-90' 
+                  isDark
+                    ? 'hover:bg-red-500/20 text-gray-300 hover:text-red-400 hover:border hover:border-red-400/30 hover:scale-110 hover:rotate-90'
                     : 'hover:bg-red-100 text-gray-600 hover:text-red-600 hover:border hover:border-red-200 hover:scale-110 hover:rotate-90'
                 }`}
                 title="Close"
@@ -195,8 +199,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   activeTab === 'edit'
                     ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg scale-105'
-                    : isDark 
-                      ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105' 
+                    : isDark
+                      ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105'
                       : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50 hover:scale-105'
                 }`}
               >
@@ -206,8 +210,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
               <button
                 onClick={handleInfoTabClick}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  isDark 
-                    ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105' 
+                  isDark
+                    ? 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:scale-105'
                     : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50 hover:scale-105'
                 }`}
               >
@@ -294,14 +298,14 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                       maxLength={20}
                       placeholder="Enter keyword & press enter"
                       className={`flex-1 pl-4 pr-4 py-3 rounded-2xl border transition-all duration-300 ${
-                        isDark 
-                          ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400 focus:bg-black/30 hover:bg-black/25' 
+                        isDark
+                          ? 'bg-black/20 backdrop-blur-xl border-white/10 text-white placeholder-gray-400 focus:bg-black/30 hover:bg-black/25'
                           : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:bg-white hover:bg-gray-100'
                       } focus:outline-none focus:ring-2 focus:ring-yellow-400/30 focus:border-yellow-400/50`}
                     />
-                    <button 
+                    <button
                       type="button"
-                      onClick={addKeyword} 
+                      onClick={addKeyword}
                       className={`p-2 rounded-xl transition-all duration-300 ${
                         isDark
                           ? 'text-yellow-400 hover:bg-yellow-400/10 hover:text-yellow-300'
@@ -311,10 +315,10 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                     >
                       <PlusCircle className="w-6 h-6" />
                     </button>
-                    <button 
+                    <button
                       type="button"
-                      onClick={clearKeywords} 
-                      title="Clear all keywords" 
+                      onClick={clearKeywords}
+                      title="Clear all keywords"
                       className={`p-2 rounded-xl transition-all duration-300 ${
                         isDark
                           ? 'text-rose-400 hover:bg-rose-400/10 hover:text-rose-300'
@@ -324,23 +328,23 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
-                  
+
                   {keywords.length > 0 && (
                     <div className={`max-h-24 overflow-y-auto rounded-xl p-3 border transition-all duration-300 ${
-                      isDark 
-                        ? 'bg-black/30 border-white/10' 
+                      isDark
+                        ? 'bg-black/30 border-white/10'
                         : 'bg-gray-100 border-gray-200'
                     }`}>
                       <div className="flex flex-wrap gap-2">
                         {keywords.map((word, index) => (
-                          <span 
+                          <span
                             key={`${word}-${index}`}
                             className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 animate-fade-in"
                           >
                             {word}
-                            <button 
+                            <button
                               type="button"
-                              onClick={() => removeKeyword(index)} 
+                              onClick={() => removeKeyword(index)}
                               className="text-black/70 hover:text-black hover:scale-110 transition-all duration-200 w-4 h-4 flex items-center justify-center rounded-full hover:bg-black/10"
                             >
                               ×
@@ -358,8 +362,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
                     type="button"
                     onClick={onClose}
                     className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
-                      isDark 
-                        ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 hover:border-white/20' 
+                      isDark
+                        ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 hover:border-white/20'
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 hover:border-gray-300'
                     } hover:scale-105 active:scale-95`}
                   >
@@ -383,7 +387,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
             from { opacity: 0; }
             to { opacity: 1; }
           }
-          
+
           @keyframes modal-in {
             from {
               opacity: 0;
@@ -394,11 +398,11 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
               transform: scale(1) translateY(0);
             }
           }
-          
+
           .animate-fade-in {
             animation: fade-in 0.3s ease-out;
           }
-          
+
           .animate-modal-in {
             animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
           }
@@ -407,17 +411,17 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
           .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
           }
-          
+
           .custom-scrollbar::-webkit-scrollbar-track {
             background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
             border-radius: 10px;
           }
-          
+
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background: ${isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.6)'};
             border-radius: 10px;
           }
-          
+
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: ${isDark ? 'rgba(20, 184, 166, 0.7)' : 'rgba(20, 184, 166, 0.8)'};
           }
@@ -426,7 +430,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate }) 
 
       {/* Separate ActivityInfoModal */}
       {showActivityModal && (
-        <ActivityInfoModal 
+        <ActivityInfoModal
           isDark={isDark}
           credential_id={entry.id}
           onClose={() => setShowActivityModal(false)}

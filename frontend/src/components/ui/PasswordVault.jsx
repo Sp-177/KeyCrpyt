@@ -19,6 +19,7 @@ import EditPasswordModal from './EditPasswordModal';
 import '../../index.css'
 import {toast} from 'react-hot-toast'
 import { getCredentials,postCredential,putCredential,deleteCredential} from '../../service/api/credentialService';
+import { postPasswordFeature } from '../../service/api/passwordFeatureService';
 
 
 
@@ -30,6 +31,7 @@ export default function PasswordVault({ isDark = true, user }) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [feature, setFeature]=useState(null);
 
   const toggleVisibility = (id) => {
     setVisibleIds((prev) =>
@@ -41,10 +43,10 @@ export default function PasswordVault({ isDark = true, user }) {
     setEditingEntry(entry);
     setShowEditModal(true);
   };
-  
+
   useEffect(() => {
   async function fetchData() {
-    
+
     try {
       const data = await getCredentials();
       // console.log(data)
@@ -65,11 +67,14 @@ const handleAdd = async (newEntry) => {
       toast.error("Please fill all fields");
       return;
     }
-
+    await postPasswordFeature(feature);
     await postCredential(newEntry);
 
     const updated = await getCredentials();
     setVault(updated);
+
+    // console.log('new features added :', feature);
+    // const addFeature=await postFeature(features);
 
     toast.success("Password added successfully");
     setShowModal(false);
@@ -83,10 +88,12 @@ const handleUpdate = async (updatedEntry) => {
   try {
     // here you might also call updateCredential API if needed
     // console.log(updatedEntry)
+    await postPasswordFeature(feature);
     await putCredential(updatedEntry);
     const updated = await getCredentials();
     setVault(updated);
     toast.success("Password updated successfully");
+    // console.log('new features added ', feature);
     setShowEditModal(false);
     setEditingEntry(null);
   } catch (err) {
@@ -148,7 +155,7 @@ const getFavicon = (website) => {
       <div className="w-full max-w-6xl mx-auto">
         {/* Main Vault Container */}
         <div className={`rounded-3xl border-2 shadow-2xl p-8 h-[80vh] flex flex-col transition-all duration-300 ${
-          isDark 
+          isDark
             ? 'bg-black/40 backdrop-blur-3xl border-white/20 shadow-black/30'
             : 'bg-white/70 backdrop-blur-xl border-gray-200/60 shadow-gray-900/15'
         }`}>
@@ -213,7 +220,7 @@ const getFavicon = (website) => {
                 <div
                   key={entry.id}
                   className={`group rounded-2xl p-5 border-2 shadow-lg hover:shadow-xl transform hover:scale-[1.005] transition-all duration-300 ${
-                    isDark 
+                    isDark
                       ? 'bg-black/50 border-white/15 hover:border-cyan-400/50 hover:bg-black/60'
                       : 'bg-white/70 border-gray-200/60 hover:border-teal-400/70 hover:bg-white/85'
                   }`}
@@ -225,12 +232,12 @@ const getFavicon = (website) => {
                   <div className="flex items-center gap-6">
                     {/* Enhanced website Icon */}
                     <div className={`w-16 h-16 rounded-2xl p-3 flex items-center justify-center shadow-lg flex-shrink-0 transition-all duration-300 group-hover:scale-105 ${
-                      isDark 
+                      isDark
                         ? 'bg-gradient-to-br from-slate-800/60 to-gray-900/50 border-2 border-cyan-400/30 group-hover:border-cyan-400/50'
                         : 'bg-gradient-to-br from-teal-500 to-cyan-500 border-2 border-white/30 group-hover:border-white/50'
                     }`}>
-                      <img 
-                        src={getFavicon(entry.website)} 
+                      <img
+                        src={getFavicon(entry.website)}
                         alt=""
                         className="w-8 h-8 transition-transform duration-300 group-hover:scale-110"
                         onError={(e) => {
@@ -249,7 +256,7 @@ const getFavicon = (website) => {
                       }`}>
                         {entry.website}
                       </h3>
-                      
+
                       {/* Username Row */}
                       <div className="flex items-center gap-3">
                         <User className="w-4 h-4 text-teal-400 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
@@ -259,8 +266,8 @@ const getFavicon = (website) => {
                         <button
                           onClick={() => handleCopy(entry.username, 'Username')}
                           className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 ${
-                            isDark 
-                              ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30' 
+                            isDark
+                              ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30'
                               : 'hover:bg-teal-100 hover:text-teal-600 hover:border hover:border-teal-200'
                           }`}
                           title="Copy username"
@@ -268,7 +275,7 @@ const getFavicon = (website) => {
                           <Copy className="w-4 h-4 text-teal-400 transition-transform duration-300 hover:scale-110" />
                         </button>
                       </div>
-                      
+
                       {/* Password Row */}
                       <div className="flex items-center gap-3">
                         <Key className="w-4 h-4 text-teal-400 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
@@ -280,8 +287,8 @@ const getFavicon = (website) => {
                         <button
                           onClick={() => handleCopy(entry.password)}
                           className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95 ${
-                            isDark 
-                              ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30' 
+                            isDark
+                              ? 'hover:bg-teal-500/20 hover:text-teal-300 hover:border hover:border-teal-400/30'
                               : 'hover:bg-teal-100 hover:text-teal-600 hover:border hover:border-teal-200'
                           }`}
                           title="Copy password"
@@ -311,8 +318,8 @@ const getFavicon = (website) => {
                       <button
                         onClick={() => handleEdit(entry)}
                         className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 ${
-                          isDark 
-                            ? 'hover:bg-yellow-500/20 text-gray-300 hover:text-yellow-400 hover:border-2 hover:border-yellow-400/30' 
+                          isDark
+                            ? 'hover:bg-yellow-500/20 text-gray-300 hover:text-yellow-400 hover:border-2 hover:border-yellow-400/30'
                             : 'hover:bg-yellow-100 text-gray-600 hover:text-yellow-600 hover:border-2 hover:border-yellow-200'
                         }`}
                         title="Edit password"
@@ -346,6 +353,7 @@ const getFavicon = (website) => {
           isDark={isDark}
           onClose={() => setShowModal(false)}
           onAdd={handleAdd}
+          setFeatures={setFeature}
         />
       )}
 
@@ -358,6 +366,7 @@ const getFavicon = (website) => {
             setEditingEntry(null);
           }}
           onUpdate={handleUpdate}
+          setFeatures={setFeature}
         />
       )}
 
