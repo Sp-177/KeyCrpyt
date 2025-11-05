@@ -1,7 +1,7 @@
 import React from 'react';
 
-export default function Loading({ message = 'Loading PayPact...', isDark = true }) {
-  
+export default function Loading({ message = 'Loading KeyCrypt...', isDark = true }) {
+
   return (
     <div className={`w-full h-screen flex items-center justify-center ${isDark ? 'bg-black' : 'bg-white'} relative overflow-hidden`}>
       {/* Animated orb background */}

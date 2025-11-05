@@ -15,6 +15,9 @@ import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path, Body
 from firebase_admin import credentials, storage, initialize_app
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 # ============================================================
 # 🔹 Firebase Initialization
@@ -33,6 +36,17 @@ app = FastAPI(
     description="Predicts password strength using user or base model stored in Firebase Storage.",
     version="1.0.0"
 )
+# ============================================================
+# 🌐 CORS Middleware
+# ============================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend: ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],  # GET, POST, PUT, DELETE, OPTIONS
+    allow_headers=["*"],  # Authorization, Content-Type, etc.
+)
+
 
 # ============================================================
 # 🔹 Load Model (User or Base)
@@ -121,4 +135,4 @@ def predict_strength(
 # ============================================================
 # 🚀 Run Command
 # ============================================================
-# uvicorn fastapi_strength_predictor_post:app --reload
+# uvicorn strength_predictor:app --reload
