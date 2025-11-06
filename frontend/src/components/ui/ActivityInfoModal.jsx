@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Globe, Monitor, Smartphone, MapPin, Clock, Shield, AlertTriangle, Filter, Search, Download, RefreshCw, ChevronDown, Flag } from 'lucide-react';
 import { getActivityInfos, putActivityInfo } from '../../service/api/ActivityInfoService';
+import { reportPassword } from '../../service/api/reportPassword';
+import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 
-export default function ActivityInfoModal({ isDark = false, credential_id = "demo-123", onClose = () => {} }) {
+export default function ActivityInfoModal({ isDark = false, credential_id = "demo-123", onClose = () => {} ,password}) {
   const [activityList, setActivityList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -12,6 +14,9 @@ export default function ActivityInfoModal({ isDark = false, credential_id = "dem
   const [selectedActivities, setSelectedActivities] = useState(new Set());
   const [error, setError] = useState(null);
   const [reportingId, setReportingId] = useState(null);
+  const showToast = (message, type = 'error') => {
+    console.log(`${type.toUpperCase()}: ${message}`);
+  };
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -56,11 +61,21 @@ export default function ActivityInfoModal({ isDark = false, credential_id = "dem
 
     try {
       await putActivityInfo(credential_id, { id, reported: true });
-
+      const featureData = extractPasswordFeatures(password);
+      await reportPassword(featureData);
+      showToast(
+        `🚨 Password has been reported compromised!`,
+        'error'
+      );
+      setTimeout(() => {
+        showToast(
+          `🔒 We recommend changing your password immediately.`,
+          'warning'
+        );
+      }, 2000);
       setActivityList(prev => prev.map(item =>
         item.id === id ? { ...item, reported: true } : item
       ));
-
       setReportingId(null);
       console.log("Activity reported successfully");
     } catch (error) {

@@ -434,6 +434,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
           isDark={isDark}
           credential_id={entry.id}
           onClose={() => setShowActivityModal(false)}
+          password={form.password}
         />
       )}
     </>
