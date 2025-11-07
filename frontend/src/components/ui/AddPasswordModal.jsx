@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Globe, User, Key, Sparkles, X, Lightbulb, PlusCircle, Trash2 } from 'lucide-react';
 import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 import { auth } from '../../auth/firebaseConfig';
+import { suggestPassword } from '../../service/api/passwordApi';
 
 export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }) {
   const [formData, setFormData] = useState({ website: '', username: '', password: '' });
@@ -69,8 +70,9 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
         Math.random().toString(36).slice(2, 6).toUpperCase() +
         '#';
     } else {
-      const base = keywords.join('-').slice(0, 20);
-      suggestion = `${base}-${Math.random().toString(36).slice(2, 5)}*`;
+      await suggestPassword(auth.currentUser.uid, { keywords: keywords }).then((data) => {
+        suggestion = data.best_password;
+      });
     }
     setFormData({ ...formData, password: suggestion });
     showToast('Suggested password inserted', 'success');
