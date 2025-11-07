@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, Globe, Monitor, Smartphone, MapPin, Clock, Shield, AlertTriangle, Filter, Search, Download, RefreshCw, ChevronDown, Flag } from 'lucide-react';
 import { getActivityInfos, putActivityInfo } from '../../service/api/ActivityInfoService';
 import { reportPassword } from '../../service/api/reportPassword';
+import { retrainModel } from '../../service/api/retrainCall';
 import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 
 export default function ActivityInfoModal({ isDark = false, credential_id = "demo-123", onClose = () => {} ,password}) {
@@ -53,36 +54,50 @@ export default function ActivityInfoModal({ isDark = false, credential_id = "dem
     }
   };
 
-  const handleReport = async (id) => {
-    if (typeof id === 'undefined') {
-      console.error("Invalid ID for handleReport");
-      return;
-    }
+  const handleReport = async (id,credential_id) => {
+  // 🧩 Validation checks
+  if (!id  || !credential_id) {
+    console.error("❌ Invalid input for handleReport:", { id, credential_id });
+    showToast("Invalid report data. Please try again.", "error");
+    return;
+  }
 
-    try {
-      await putActivityInfo(credential_id, { id, reported: true });
-      const featureData = extractPasswordFeatures(password);
-      await reportPassword(featureData);
-      showToast(
-        `🚨 Password has been reported compromised!`,
-        'error'
-      );
-      setTimeout(() => {
-        showToast(
-          `🔒 We recommend changing your password immediately.`,
-          'warning'
-        );
-      }, 2000);
-      setActivityList(prev => prev.map(item =>
+  try {
+    // 🔹 Step 1: Mark activity as reported in Firestore
+    await putActivityInfo(credential_id, { id, reported: true });
+
+    // 🔹 Step 2: Extract password features
+    const featureData = await extractPasswordFeatures(password);
+
+    // 🔹 Step 3: Report compromised password to backend (for anomaly tracking)
+    await reportPassword(auth.currentUser.uid, featureData);
+
+    // 🔹 Step 4: Retrain personalized model to exclude this compromised entry
+    await retrainModel(auth.currentUser.uid);
+
+    // 🔹 Step 5: User feedback toasts
+    showToast("🚨 Password reported as compromised!", "error");
+    setTimeout(() => {
+      showToast("🔒 We recommend changing your password immediately.", "warning");
+    }, 2000);
+
+    // 🔹 Step 6: Update UI (mark as reported)
+    setActivityList(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, reported: true } : item
-      ));
-      setReportingId(null);
-      console.log("Activity reported successfully");
-    } catch (error) {
-      console.error("Error reporting activity:", error);
-      setError("Failed to report activity");
-    }
-  };
+      )
+    );
+
+    // 🔹 Cleanup
+    setReportingId(null);
+    console.log("✅ Activity reported successfully");
+
+  } catch (error) {
+    console.error("❌ Error reporting activity:", error);
+    showToast("Failed to report activity.", "error");
+    setError("Failed to report activity");
+  }
+};
 
   const handleTerminateSession = async (id) => {
     if (typeof id === 'undefined') {

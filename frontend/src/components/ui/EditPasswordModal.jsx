@@ -10,6 +10,54 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState(entry.keywords);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [strength, setStrength] = useState(null);
+
+
+  useEffect(() => {
+      if (!formData.password) {
+        setStrength(null);
+        return;
+      }
+
+      const delayDebounce = setTimeout(async () => {
+        await handleStrengthCheck(formData.password);
+      }, 700);
+
+      return () => clearTimeout(delayDebounce);
+    }, [formData.password]);
+
+    const handleStrengthCheck = async (password) => {
+      try {
+
+        const features = await extractPasswordFeatures(password);
+
+
+        const response = await passwordStrength(auth.currentUser.uid, features);
+
+        if (!response.ok) throw new Error('Failed to predict strength');
+
+        const data = await response.json();
+        setStrength(data.predicted_label);
+
+        console.log('🔹 Password strength:', data);
+      } catch (error) {
+        console.error(error);
+        showToast('Failed to analyze password strength', 'error');
+      }
+    };
+
+
+    const colorMap = {
+      Weak: isDark ? 'text-red-400' : 'text-red-500',
+      Medium: isDark ? 'text-yellow-300' : 'text-yellow-500',
+      Strong: isDark ? 'text-green-400' : 'text-green-500',
+    };
+
+    const bgColorMap = {
+      Weak: isDark ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-200',
+      Medium: isDark ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-yellow-50 border-yellow-200',
+      Strong: isDark ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200',
+    };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,8 +78,8 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
       keywords: keywords
     });
     const features = extractPasswordFeatures(form.password);
-    // console.log('Extracted Password Features:', features);
     setFeatures(features);
+
   };
 
   const addKeyword = () => {
@@ -73,35 +121,38 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
     toast.success('All keywords cleared');
   };
 
-  const suggestPassword = () => {
-    let suggestion = '';
-    if (keywords.length === 0) {
-      // Generate random secure password
-      const chars = 'abcdefghijklmnopqrstuvwxyz';
-      const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const numbers = '0123456789';
-      const symbols = '@#$%&*!?';
+  const suggestPassword = async () => {
+      try {
+        let suggestion = '';
 
-      suggestion =
-        chars.charAt(Math.floor(Math.random() * chars.length)) +
-        upperChars.charAt(Math.floor(Math.random() * upperChars.length)) +
-        numbers.charAt(Math.floor(Math.random() * numbers.length)) +
-        symbols.charAt(Math.floor(Math.random() * symbols.length)) +
-        Math.random().toString(36).slice(2, 8) +
-        numbers.charAt(Math.floor(Math.random() * numbers.length)) +
-        symbols.charAt(Math.floor(Math.random() * symbols.length));
-    } else {
-      // Use keywords to generate password
-      const base = keywords.join('').slice(0, 15);
-      const randomNum = Math.floor(Math.random() * 999) + 1;
-      const symbols = '@#$%&*!?';
-      const symbol = symbols.charAt(Math.floor(Math.random() * symbols.length));
-      suggestion = `${base}${randomNum}${symbol}`;
-    }
+        // If no keywords → fallback random generator
+        if (keywords.length === 0) {
+          suggestion =
+            Math.random().toString(36).slice(2, 8) +
+            '@' +
+            Math.random().toString(36).slice(2, 6).toUpperCase() +
+            '#';
+        } else {
+          // ✅ Use await only inside async function
+          const data = await getSuggestions(auth.currentUser.uid);
 
-    setForm(prev => ({ ...prev, password: suggestion }));
-    toast.success('Password suggestion applied');
-  };
+          if (!data || !data.best_password) {
+            throw new Error('No suggestions returned from backend');
+          }
+
+          suggestion = data.best_password.password;
+          console.log('🔹 Suggested password:', data);
+        }
+
+        // ✅ Update form data
+        setFormData((prev) => ({ ...prev, password: suggestion }));
+
+        showToast('Suggested password inserted', 'success');
+      } catch (error) {
+        console.error('❌ Password suggestion failed:', error);
+        showToast('Failed to get password suggestion', 'error');
+      }
+    };
 
   const getFavicon = (website) => {
     if (!website) return '';
@@ -285,6 +336,38 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
                     <Lightbulb className="w-5 h-5" />
                   </button>
                 </div>
+                {strength && (
+              <div
+                className={`rounded-2xl p-4 border backdrop-blur-xl transition-all duration-500 ${bgColorMap[strength]}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      isDark ? 'bg-black/20' : 'bg-white/80'
+                    }`}
+                  >
+                    <span className="text-xl">
+                      {strength === 'Weak' && '⚠️'}
+                      {strength === 'Medium' && '🟡'}
+                      {strength === 'Strong' && '✅'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-bold ${colorMap[strength]}`}>
+                      {strength === 'Weak' && 'Weak Password'}
+                      {strength === 'Medium' && 'Medium Strength'}
+                      {strength === 'Strong' && 'Strong Password'}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {strength === 'Weak' &&
+                        'Consider adding symbols, numbers, or uppercase letters'}
+                      {strength === 'Medium' && 'Good, but can be improved with more variety'}
+                      {strength === 'Strong' && 'Excellent! Your password is secure'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
                 {/* Keywords Section */}
                 <div className="space-y-3">

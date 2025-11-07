@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Globe, User, Key, Sparkles, X, Lightbulb, PlusCircle, Trash2 } from 'lucide-react';
 import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 import { auth } from '../../auth/firebaseConfig';
-import { suggestPassword } from '../../service/api/passwordApi';
+import { passwordStrength } from '../../service/api/passwordStrength';
+import { suggestPassword } from '../../service/api/passwordSuggestion';
 
 export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }) {
   const [formData, setFormData] = useState({ website: '', username: '', password: '' });
@@ -39,6 +40,7 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
     if (typeof window.extractPasswordFeatures === 'function') {
       const features = window.extractPasswordFeatures(formData.password);
       setFeatures(features);
+      
     }
   };
 
@@ -61,21 +63,37 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
     showToast('Cleared all keywords', 'success');
   };
 
-  const suggestPassword = () => {
-    let suggestion = '';
-    if (keywords.length === 0) {
-      suggestion =
-        Math.random().toString(36).slice(2, 8) +
-        '@' +
-        Math.random().toString(36).slice(2, 6).toUpperCase() +
-        '#';
-    } else {
-      await suggestPassword(auth.currentUser.uid, { keywords: keywords }).then((data) => {
-        suggestion = data.best_password;
-      });
+  const suggestPassword = async () => {
+    try {
+      let suggestion = '';
+
+      // If no keywords → fallback random generator
+      if (keywords.length === 0) {
+        suggestion =
+          Math.random().toString(36).slice(2, 8) +
+          '@' +
+          Math.random().toString(36).slice(2, 6).toUpperCase() +
+          '#';
+      } else {
+        // ✅ Use await only inside async function
+        const data = await getSuggestions(auth.currentUser.uid);
+
+        if (!data || !data.best_password) {
+          throw new Error('No suggestions returned from backend');
+        }
+
+        suggestion = data.best_password.password;
+        console.log('🔹 Suggested password:', data);
+      }
+
+      // ✅ Update form data
+      setFormData((prev) => ({ ...prev, password: suggestion }));
+
+      showToast('Suggested password inserted', 'success');
+    } catch (error) {
+      console.error('❌ Password suggestion failed:', error);
+      showToast('Failed to get password suggestion', 'error');
     }
-    setFormData({ ...formData, password: suggestion });
-    showToast('Suggested password inserted', 'success');
   };
 
   useEffect(() => {
@@ -94,14 +112,10 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
   const handleStrengthCheck = async (password) => {
     try {
 
-      const features = extractPasswordFeatures(password);
+      const features = await extractPasswordFeatures(password);
 
-      // Mock strength check for demo - replace with actual API call
-      const response = await fetch(`http://localhost:8000/predict-strength/${auth.currentUser.uid}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(features),
-      });
+
+      const response = await passwordStrength(auth.currentUser.uid, features);
 
       if (!response.ok) throw new Error('Failed to predict strength');
 
