@@ -1,4 +1,4 @@
-import api from './api';
+import aiApi from './aiApi';
 
 /**
  * Predicts the strength of a password for the given user.
@@ -32,7 +32,7 @@ export const passwordStrength = async (userId, features) => {
       throw new Error('Password features are required for prediction.');
 
     // ✅ Send POST request with password features
-    const response = await api.post(`/strength/predict-strength/${userId}`, features);
+    const response = await aiApi.post(`/strength/predict-strength/${userId}`, features);
 
     return response.data;
   } catch (error) {

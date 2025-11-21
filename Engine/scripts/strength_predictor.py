@@ -10,7 +10,7 @@ Author: Shubham Patel (NIT Raipur)
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path, Body
-from server.firebase_model import load_model_for_user
+from server.firebase_model import load_strength_model_for_user
 
 # Define sub-app only (no global CORS here)
 app = FastAPI(title="KeyCrypt Strength Predictor API")
@@ -22,7 +22,7 @@ def predict_strength(
 ):
     """Predict password strength for given user."""
     try:
-        model_data, model_type = load_model_for_user(user_id)
+        model_data, model_type = load_strength_model_for_user(user_id)
         model = model_data["model"]
         scaler = model_data["scaler"]
         features_list = model_data["features"]

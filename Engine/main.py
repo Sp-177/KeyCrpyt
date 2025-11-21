@@ -1,56 +1,78 @@
 """
 ============================================================
-🌐 KeyCrypt Unified FastAPI Backend
+🌐 KeyCrypt Unified FastAPI Backend (Safe Import Version)
 Author: Shubham Patel (NIT Raipur)
 ============================================================
-✅ Combines:
-   - Password Strength Predictor (scripts/strength_predictor.py)
-   - Model Retraining API (server/train_user_model_api.py)
-   - Smart Password Generator (scripts/password_generator_api.py)
-✅ Applies CORS globally (once)
-✅ Single unified FastAPI server
+✔ Loads 3 sub-APIs (predictor / retrain / generator)
+✔ If any sub-API is missing → print message & continue
+✔ Global CORS
+✔ Unified backend running on port 5000
 ============================================================
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import importlib
 
-# 🔹 Import sub-apps (modular FastAPI apps)
-from scripts.strength_predictor import app as predictor_app
-from server.train_user_model import app as retrain_app
-from scripts.password_generator import app as generator_app
 
 # ============================================================
-# 🔹 Main FastAPI App
+# 🔧 Safe Import Function
+# ============================================================
+def safe_import(module_path: str, app_name: str):
+    try:
+        module = importlib.import_module(module_path)
+        sub_app = getattr(module, "app")
+        print(f"✅ Loaded sub-API: {app_name} ({module_path})")
+        return sub_app
+    except Exception as e:
+        print(f"⚠️ Could NOT load {app_name} ({module_path}) → {e}")
+        return None
+
+
+# ============================================================
+# 🌐 Main FastAPI App
 # ============================================================
 app = FastAPI(
     title="KeyCrypt AI — Unified API",
-    description="Unified backend for password strength prediction, model retraining, and password generation.",
+    description="Unified backend for strength prediction, model retraining and smart password generation.",
     version="1.0.0"
 )
 
+
 # ============================================================
-# 🌐 Global CORS Configuration
+# 🌐 Global CORS
 # ============================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Replace with frontend origin for production, e.g., ["https://keycrypt.app"]
+    allow_origins=["*"],    # Replace with frontend domain for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 # ============================================================
-# 🔀 Mount Sub-APIs
+# 🔀 SAFE MOUNT: Sub-APIs
 # ============================================================
-app.mount("/strength", predictor_app)   # Strength prediction
-app.mount("/retrain", retrain_app)      # Model retraining
-app.mount("/generate", generator_app)   # GRU-based password generation
+sub_apis = [
+    ("/strength", "scripts.strength_predictor", "Strength Predictor API"),
+    ("/retrain", "server.train_user_model", "Model Retraining API"),
+    ("/generate", "scripts.password_generator", "Password Generator API"),
+]
+
+for route, module_path, name in sub_apis:
+    sub_app = safe_import(module_path, name)
+    if sub_app:
+        app.mount(route, sub_app)
+        print(f"🔗 Mounted {name} at {route}")
+    else:
+        print(f"⏭️ Skipped mounting {name} (module missing)")
+
 
 # ============================================================
 # 🚀 Run Server
 # ============================================================
 if __name__ == "__main__":
     import uvicorn
-    print("🌐 Starting KeyCrypt Unified API Server...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("🌐 Starting KeyCrypt Unified API Server on port 5000...")
+    uvicorn.run(app, host="localhost", port=8000)

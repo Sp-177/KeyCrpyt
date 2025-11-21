@@ -29,25 +29,56 @@ db, bucket = initialize_firebase()
 # 🔹 Load Strength Model (Prediction Only)
 # ============================================================
 
+import os
+import joblib
+import tempfile
+
 def load_strength_model_for_user(user_id: str):
     """
     Loads the password strength prediction model for a user.
     Falls back to base model if not personalized.
+    Downloads model from Firebase Storage safely into a temp file (no caching).
     """
     user_strength_path = f"models/users/user_{user_id}_model.pkl"
     base_strength_path = "models/base/password_strength_base.pkl"
-    temp_path = "temp_strength_model.pkl"
 
-    blob = bucket.blob(user_strength_path)
-    if blob.exists():
-        print(f"📦 Loaded personalized strength model for → {user_id}")
-        blob.download_to_filename(temp_path)
-        return joblib.load(temp_path), "user"
-    else:
-        print("⚙️ Personalized strength model not found, using base model...")
+    # Create a temporary file to safely store model before loading
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pkl") as tmp:
+        temp_path = tmp.name
+
+    try:
+        # Try personalized model first
+        blob = bucket.blob(user_strength_path)
+        if blob.exists():
+            print(f"📦 Downloading personalized strength model for → {user_id}")
+            blob.download_to_filename(temp_path)
+            model_data = joblib.load(temp_path)
+            print("✅ Personalized strength model loaded successfully.")
+            return model_data, "user"
+
+        # Fallback to base model
+        print("⚙️ Personalized model not found, using base model...")
         blob = bucket.blob(base_strength_path)
+        if not blob.exists():
+            raise FileNotFoundError("❌ Base strength model missing from Firebase Storage!")
+
         blob.download_to_filename(temp_path)
-        return joblib.load(temp_path), "base"
+        model_data = joblib.load(temp_path)
+        print("✅ Base strength model loaded successfully.")
+        return model_data, "base"
+
+    except Exception as e:
+        print(f"❌ Error loading model for {user_id}: {e}")
+        raise
+
+    finally:
+        # Clean up temp file after use
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                # print(f"🧹 Temporary model file deleted: {temp_path}")
+        except Exception as cleanup_error:
+            print(f"⚠️ Could not delete temp file: {cleanup_error}")
 
 # ============================================================
 # 🔹 Load GRU Generator Model (Base Only)

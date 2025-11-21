@@ -12,7 +12,7 @@ Author: Shubham Patel (NIT Raipur)
 
 import joblib
 import pandas as pd
-from flask import Flask, jsonify
+from fastapi import FastAPI, HTTPException, Path
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -21,7 +21,14 @@ from sklearn.metrics import accuracy_score
 from .firebase_model import load_strength_model_for_user, upload_trained_model
 from .firebase_dataset import fetch_kaggle_dataset, get_user_features
 
-app = Flask(__name__)
+# ============================================================
+# 🔹 FastAPI App
+# ============================================================
+app = FastAPI(
+    title="KeyCrypt — Model Retrainer API",
+    description="Retrains personalized password strength models for each user",
+    version="1.0.0",
+)
 
 # ============================================================
 # 🔹 Auto-label Unlabeled User Data
@@ -46,6 +53,7 @@ def auto_label_unlabeled_data(df: pd.DataFrame, model_data: dict):
 
     df.loc[unlabeled.index, "label"] = preds
     return df
+
 
 # ============================================================
 # 🔹 Train Personalized Model
@@ -89,7 +97,9 @@ def train_user_model(user_id: str):
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42
+    )
 
     model = RandomForestClassifier(n_estimators=300, random_state=42)
     model.fit(X_train, y_train)
@@ -106,12 +116,13 @@ def train_user_model(user_id: str):
     print(f"✅ Training completed and model uploaded for → {user_id}")
     return {"user_id": user_id, "accuracy": acc, "samples": len(X)}
 
+
 # ============================================================
-# 🌐 Flask API Endpoint — /retrain/<user_id>
+# 🌐 FastAPI Endpoint — /retrain/{user_id}
 # ============================================================
 
-@app.route("/retrain/<user_id>", methods=["POST"])
-def retrain_with_param(user_id):
+@app.post("/retrain/{user_id}")
+def retrain_with_param(user_id: str = Path(..., description="Firebase user ID")):
     """
     🔁 Trigger retraining for a specific user via URL param.
     Example:
@@ -120,22 +131,12 @@ def retrain_with_param(user_id):
     try:
         print(f"🔔 API retrain request for user_id: {user_id}")
         result = train_user_model(user_id)
-
-        return jsonify({
+        return {
             "status": "success",
             "message": f"Retraining completed for {user_id}",
             "accuracy": result["accuracy"],
-            "samples": result["samples"]
-        }), 200
-
+            "samples": result["samples"],
+        }
     except Exception as e:
         print(f"❌ Retrain API error for {user_id}: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
-# ============================================================
-# 🚀 MAIN ENTRY
-# ============================================================
-
+        raise HTTPException(status_code=500, detail=str(e))

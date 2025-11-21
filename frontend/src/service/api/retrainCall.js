@@ -1,4 +1,4 @@
-import api from './api';
+import aiApi from './aiApi';
 
 /**
  * Retrains the personalized password strength model for a user.
@@ -19,7 +19,7 @@ export const retrainModel = async (userId) => {
     if (!userId) throw new Error('User ID is required to retrain model.');
 
     // ✅ Send POST request to backend
-    const response = await api.post(`/retrain/retrain/${userId}`);
+    const response = await aiApi.post(`/retrain/${userId}`);
 
     return response.data;
   } catch (error) {

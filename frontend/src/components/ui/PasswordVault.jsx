@@ -20,6 +20,8 @@ import '../../index.css'
 import {toast} from 'react-hot-toast'
 import { getCredentials,postCredential,putCredential,deleteCredential} from '../../service/api/credentialService';
 import { postPasswordFeature } from '../../service/api/passwordFeatureService';
+import { retrainModel } from '../../service/api/retrainCall';
+
 
 
 
@@ -31,7 +33,7 @@ export default function PasswordVault({ isDark = true, user }) {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
-  const [feature, setFeature]=useState(null);
+  const [feature, setFeature]=useState({});
 
   const toggleVisibility = (id) => {
     setVisibleIds((prev) =>
@@ -67,14 +69,14 @@ const handleAdd = async (newEntry) => {
       toast.error("Please fill all fields");
       return;
     }
+    console.log('new features added :', feature);
     await postPasswordFeature(feature);
     await postCredential(newEntry);
 
     const updated = await getCredentials();
     setVault(updated);
 
-    // console.log('new features added :', feature);
-    // const addFeature=await postFeature(features);
+
 
     toast.success("Password added successfully");
     setShowModal(false);
@@ -90,6 +92,7 @@ const handleUpdate = async (updatedEntry) => {
     // console.log(updatedEntry)
     await postPasswordFeature(feature);
     await putCredential(updatedEntry);
+    await retrainModel(user.uid);
     const updated = await getCredentials();
     setVault(updated);
     toast.success("Password updated successfully");

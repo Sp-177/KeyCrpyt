@@ -1,11 +1,13 @@
 """
 ============================================================
-🔐 KeyCrypt — Password Generator API
+🔐 KeyCrypt — Keyword-Based Smart Password Generator API (v3)
 Author: Shubham Patel (NIT Raipur)
 ============================================================
-✅ Generates 10–15 strong passwords using base GRU generator
-✅ Evaluates each password with user/base strength model
-✅ Returns passwords ranked by predicted strength confidence
+✔ GRU generates natural random base structure
+✔ ALL keywords are included (no random skipping)
+✔ Human-style keyword blending (capitalization, slicing, leetspeak)
+✔ Strength predicted using user/base ML model
+✔ Returns ranked strong passwords
 ============================================================
 """
 
@@ -13,7 +15,9 @@ import numpy as np
 import string
 import math
 import pandas as pd
-from fastapi import FastAPI, Path, HTTPException
+import random
+from typing import List
+from fastapi import FastAPI, Path, Query, HTTPException
 from tensorflow.keras.models import load_model
 from server.firebase_model import load_gru_model, load_strength_model_for_user
 
@@ -21,16 +25,16 @@ from server.firebase_model import load_gru_model, load_strength_model_for_user
 # 🔹 FastAPI Setup
 # ============================================================
 app = FastAPI(
-    title="KeyCrypt AI — Smart Password Generator",
-    description="Generates strong passwords using GRU model + strength evaluation.",
-    version="1.0.0"
+    title="KeyCrypt AI — Smart Keyword Password Generator",
+    description="Generates strong passwords using GRU + keyword blending + strength evaluation.",
+    version="3.0.0"
 )
 
 # ============================================================
 # 🔹 Helper — Feature Extraction
 # ============================================================
 def extract_features(password: str):
-    """Extracts features from a password for model input."""
+    """Extract features for ML strength model."""
     if not password:
         return {}
 
@@ -60,62 +64,125 @@ def extract_features(password: str):
     }
 
 # ============================================================
-# 🔹 GRU Password Generator (Base Only)
+# 🔹 Smart Keyword Blending — Use ALL Keywords
+# ============================================================
+def blend_keywords_into_password(base_pwd: str, keywords: List[str]) -> str:
+    """
+    GRU structure + natural keyword blending.
+    ALL keywords are always included.
+    """
+    if not keywords:
+        return base_pwd
+
+    pwd = base_pwd
+
+    # 👉 Always use ALL keywords
+    selected_keywords = keywords[:]
+
+    for kw in selected_keywords:
+        styled_kw = kw
+
+        # Natural styling transformations
+        if random.random() < 0.20:  # Capitalize
+            styled_kw = styled_kw.capitalize()
+
+        if random.random() < 0.30:  # Leetspeak
+            styled_kw = (
+                styled_kw.replace("a", "@")
+                         .replace("e", "3")
+                         .replace("i", "1")
+                         .replace("o", "0")
+            )
+
+        if random.random() < 0.25 and len(styled_kw) > 3:  # Slice
+            styled_kw = styled_kw[:random.randint(3, min(5, len(styled_kw)))]
+
+        # Insert keyword at natural-looking positions
+        position = random.choice(["start", "end", "mid"])
+
+        if position == "start":
+            pwd = styled_kw + pwd
+
+        elif position == "end":
+            pwd = pwd + styled_kw
+
+        else:
+            pos = random.randint(1, len(pwd) - 1)
+            pwd = pwd[:pos] + styled_kw + pwd[pos:]
+
+    # Add special char if missing
+    if not any(c in pwd for c in "!@#$%&*?"):
+        pwd += random.choice("!@#$%&*?")
+
+    return pwd
+
+# ============================================================
+# 🔹 GRU Password Generator (Base)
 # ============================================================
 def generate_passwords(gru_model, num_passwords=12, max_length=12):
-    """Generates a batch of passwords using GRU model (character-level)."""
+    """
+    GRU-like random sampling (mock).
+    Replace with real GRU prediction if needed.
+    """
     chars = list(string.ascii_letters + string.digits + string.punctuation)
-    start_char = np.random.choice(chars)
     passwords = []
 
     for _ in range(num_passwords):
-        pwd = start_char
+        pwd = random.choice(chars)
         for _ in range(max_length - 1):
-            next_char = np.random.choice(chars)
-            pwd += next_char
+            pwd += random.choice(chars)
         passwords.append(pwd)
+
     return passwords
 
 # ============================================================
-# 🔹 API Endpoint — Generate and Evaluate Passwords
+# 🔹 API: Generate + Blend Keywords + Rank
 # ============================================================
 @app.get("/generate-passwords/{user_id}")
 def generate_and_rank_passwords(
-    user_id: str = Path(..., description="Firebase user ID")
+    user_id: str = Path(..., description="Firebase user ID"),
+    keywords: List[str] = Query(default=[], description="User keywords (ALL included)")
 ):
     """
-    Generates 10–15 passwords using GRU model,
-    evaluates their strength via user/base strength model,
+    Generates GRU passwords, blends ALL keywords, evaluates strength,
     and returns ranked results.
     """
+    print("🔥 Keywords received:", keywords)
+
     try:
-        # 1️⃣ Load GRU generator model
+        # 1️⃣ Load GRU model
         gru_model_path = load_gru_model()
         gru_model = load_model(gru_model_path)
 
-        # 2️⃣ Generate 10–15 passwords (mock generation here)
-        generated_passwords = generate_passwords(gru_model, num_passwords=15)
+        # 2️⃣ Generate base GRU-style passwords
+        base_passwords = generate_passwords(gru_model, num_passwords=15)
 
-        # 3️⃣ Extract features for each password
-        feature_list = [extract_features(pwd) for pwd in generated_passwords]
+        # 3️⃣ Blend ALL keywords
+        final_passwords = [
+            blend_keywords_into_password(pwd, keywords)
+            for pwd in base_passwords
+        ]
 
-        # 4️⃣ Load strength model (personalized or base)
+        # 4️⃣ Extract features
+        feature_list = [extract_features(pwd) for pwd in final_passwords]
+
+        # 5️⃣ Load model (personalized / base)
         model_data, model_type = load_strength_model_for_user(user_id)
         model = model_data["model"]
         scaler = model_data["scaler"]
         features_list = model_data["features"]
 
-        # 5️⃣ Predict strength for each password
         df = pd.DataFrame(feature_list).reindex(columns=features_list, fill_value=0)
         scaled = scaler.transform(df)
+
         preds = model.predict(scaled)
         probs = model.predict_proba(scaled)
 
         label_map = {0: "Weak", 1: "Medium", 2: "Strong"}
 
-        # 6️⃣ Collect and rank results
+        # 6️⃣ Build ranked results
         results = []
-        for pwd, pred, prob in zip(generated_passwords, preds, probs):
+        for pwd, pred, prob in zip(final_passwords, preds, probs):
             results.append({
                 "password": pwd,
                 "predicted_label": label_map[int(pred)],
@@ -127,15 +194,15 @@ def generate_and_rank_passwords(
                 "strength_score": round(float(prob[2] * 100), 2)
             })
 
-        results = sorted(results, key=lambda x: x["strength_score"], reverse=True)
-        best_password = results[0] if results else None
+        results_sorted = sorted(results, key=lambda x: x["strength_score"], reverse=True)
 
         return {
             "user_id": user_id,
+            "keywords_used": keywords,
             "model_used": model_type,
-            "generated_count": len(results),
-            "best_password": best_password,
-            "all_passwords": results
+            "generated_count": len(results_sorted),
+            "best_password": results_sorted[0] if results_sorted else None,
+            "all_passwords": results_sorted
         }
 
     except Exception as e:

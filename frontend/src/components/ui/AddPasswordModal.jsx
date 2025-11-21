@@ -3,7 +3,8 @@ import { Plus, Globe, User, Key, Sparkles, X, Lightbulb, PlusCircle, Trash2 } fr
 import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 import { auth } from '../../auth/firebaseConfig';
 import { passwordStrength } from '../../service/api/passwordStrength';
-import { suggestPassword } from '../../service/api/passwordSuggestion';
+import { generatePassword } from '../../service/api/passwordSuggestion';
+import { postPasswordFeature } from '../../service/api/passwordFeatureService';
 
 export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }) {
   const [formData, setFormData] = useState({ website: '', username: '', password: '' });
@@ -27,7 +28,7 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
     console.log(`${type.toUpperCase()}: ${message}`);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit =  () => {
     if (!formData.website || !formData.username || !formData.password) {
       showToast('Please fill all fields', 'error');
       return;
@@ -36,12 +37,11 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
     setFormData({ website: '', username: '', password: '' });
     setKeywords([]);
     setKeywordInput('');
+    const featureData = extractPasswordFeatures(formData.password);
+    featureData.label =strength==='Strong' ? 2 : strength==='Medium' ? 1 : 0;
+    setFeatures(featureData);
+    console.log('🔹 Extracted features to post:', featureData);
 
-    if (typeof window.extractPasswordFeatures === 'function') {
-      const features = window.extractPasswordFeatures(formData.password);
-      setFeatures(features);
-      
-    }
   };
 
   const addKeyword = () => {
@@ -76,7 +76,9 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
           '#';
       } else {
         // ✅ Use await only inside async function
-        const data = await getSuggestions(auth.currentUser.uid);
+
+        console.log('🔹 Requesting password suggestion with keywords:', typeof(keywords));
+        const data = await generatePassword(auth.currentUser.uid,{keywords:keywords});
 
         if (!data || !data.best_password) {
           throw new Error('No suggestions returned from backend');
@@ -117,15 +119,15 @@ export default function AddPasswordModal({ isDark, onClose, onAdd, setFeatures }
 
       const response = await passwordStrength(auth.currentUser.uid, features);
 
-      if (!response.ok) throw new Error('Failed to predict strength');
+      console.log('🔹 Strength response:', response);
 
-      const data = await response.json();
-      setStrength(data.predicted_label);
+      setStrength(response.predicted_label);
 
-      console.log('🔹 Password strength:', data);
+      console.log('🔹 Password strength:', response.predicted_label);
     } catch (error) {
-      console.error(error);
+
       showToast('Failed to analyze password strength', 'error');
+      console.error(error);
     }
   };
 

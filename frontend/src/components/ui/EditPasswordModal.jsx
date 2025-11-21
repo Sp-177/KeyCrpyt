@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { X, Info, Edit3, Globe, User, Key, Sparkles, Lightbulb, PlusCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ActivityInfoModal from './ActivityInfoModal';
+import { useEffect } from 'react';
+import { passwordStrength } from '../../service/api/passwordStrength';
+import { generatePassword } from '../../service/api/passwordSuggestion';
+import { auth } from '../../auth/firebaseConfig';
 import { extractPasswordFeatures } from '../../utils/passwordFeatures';
 
 export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,setFeatures }) {
@@ -14,17 +18,17 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
 
 
   useEffect(() => {
-      if (!formData.password) {
+      if (!form.password) {
         setStrength(null);
         return;
       }
 
       const delayDebounce = setTimeout(async () => {
-        await handleStrengthCheck(formData.password);
+        await handleStrengthCheck(form.password);
       }, 700);
 
       return () => clearTimeout(delayDebounce);
-    }, [formData.password]);
+    }, [form.password]);
 
     const handleStrengthCheck = async (password) => {
       try {
@@ -34,12 +38,10 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
 
         const response = await passwordStrength(auth.currentUser.uid, features);
 
-        if (!response.ok) throw new Error('Failed to predict strength');
 
-        const data = await response.json();
-        setStrength(data.predicted_label);
+        setStrength(response.strength);
 
-        console.log('🔹 Password strength:', data);
+        console.log('🔹 Password strength:', response);
       } catch (error) {
         console.error(error);
         showToast('Failed to analyze password strength', 'error');
@@ -134,7 +136,7 @@ export default function EditPasswordModal({ isDark, entry, onClose, onUpdate,set
             '#';
         } else {
           // ✅ Use await only inside async function
-          const data = await getSuggestions(auth.currentUser.uid);
+          const data = await generatePassword(auth.currentUser.uid,{keywords:keywords});
 
           if (!data || !data.best_password) {
             throw new Error('No suggestions returned from backend');
